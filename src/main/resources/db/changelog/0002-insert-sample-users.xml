@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Add two sample users -->
+    <changeSet id="1763848105169-2" author="Andrii">
+        <insert tableName="users">
+            <column name="username" value="alice"/>
+            <column name="name" value="Alice Smith"/>
+            <column name="email" value="alice@example.com"/>
+            <column name="role" value="USER"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="date_of_registration" valueDate="2025-11-22T22:00:00"/>
+            <column name="password_hash" value="hashedpassword1"/>
+        </insert>
+
+        <insert tableName="users">
+            <column name="username" value="bob"/>
+            <column name="name" value="Bob Johnson"/>
+            <column name="email" value="bob@example.com"/>
+            <column name="role" value="ADMIN"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="date_of_registration" valueDate="2025-11-22T22:05:00"/>
+            <column name="password_hash" value="hashedpassword2"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
