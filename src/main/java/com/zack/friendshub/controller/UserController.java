@@ -26,11 +26,18 @@ public class UserController {
         this.userMapper = userMapper;
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/id/{userId}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long userId) {
       return userService.getUserById(userId)
               .map(user -> ResponseEntity.ok(userMapper.toResponseDto(user)))
               .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserResponseDto> getUserByUsername(@PathVariable String username) {
+        return userService.getUserByUsername(username)
+                .map(user -> ResponseEntity.ok(userMapper.toResponseDto(user)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }
