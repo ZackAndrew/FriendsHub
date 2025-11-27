@@ -1,6 +1,5 @@
 package com.zack.friendshub.service;
 
-import ch.qos.logback.core.status.Status;
 import com.zack.friendshub.enums.UserStatus;
 import com.zack.friendshub.model.User;
 
@@ -15,7 +14,7 @@ public interface UserService {
 
     List<User> getAllUsers();
 
-    void updateUserStatus(Long id, UserStatus status);
+    User updateUserStatus(Long id, UserStatus status);
 
     void deleteUserById(Long id);
 }
