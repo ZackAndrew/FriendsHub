@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -38,6 +41,16 @@ public class UserController {
         return userService.getUserByUsername(username)
                 .map(user -> ResponseEntity.ok(userMapper.toResponseDto(user)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userService.getAllUsers()
+                .stream()
+                .map(userMapper::toResponseDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(users);
     }
 
 }
