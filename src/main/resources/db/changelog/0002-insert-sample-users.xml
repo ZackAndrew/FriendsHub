@@ -13,7 +13,7 @@
             <column name="name" value="Alice Smith"/>
             <column name="email" value="alice@example.com"/>
             <column name="role" value="USER"/>
-            <column name="status" value="ACTIVE"/>
+            <column name="status" value="ACTIVATED"/>
             <column name="date_of_registration" valueDate="2025-11-22T22:00:00"/>
             <column name="password_hash" value="hashedpassword1"/>
         </insert>
@@ -23,7 +23,7 @@
             <column name="name" value="Bob Johnson"/>
             <column name="email" value="bob@example.com"/>
             <column name="role" value="ADMIN"/>
-            <column name="status" value="ACTIVE"/>
+            <column name="status" value="ACTIVATED"/>
             <column name="date_of_registration" valueDate="2025-11-22T22:05:00"/>
             <column name="password_hash" value="hashedpassword2"/>
         </insert>
