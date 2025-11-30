@@ -1,6 +1,6 @@
 package com.zack.friendshub.dto.request;
 
-public record RegisterRequestDto(
+public record AuthRequestDto(
         String username,
         String name,
         String email,
