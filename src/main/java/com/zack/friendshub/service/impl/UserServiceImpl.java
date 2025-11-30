@@ -1,7 +1,7 @@
 package com.zack.friendshub.service.impl;
 
 import com.zack.friendshub.enums.UserStatus;
-import com.zack.friendshub.extencion.NotFoundException;
+import com.zack.friendshub.exception.NotFoundException;
 import com.zack.friendshub.model.User;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.service.UserService;
@@ -23,13 +23,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long userId) {
         return userRepo.findById(userId)
-                .orElseThrow(()-> new NotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
     }
 
     @Override
     public User getUserByUsername(String username) {
         return userRepo.findByUsername(username)
-                .orElseThrow(()-> new NotFoundException("User not found: " + username));
+                .orElseThrow(() -> new NotFoundException("User not found: " + username));
     }
 
     @Override

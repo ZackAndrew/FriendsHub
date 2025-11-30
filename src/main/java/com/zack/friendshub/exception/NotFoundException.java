@@ -1,4 +1,4 @@
-package com.zack.friendshub.extencion;
+package com.zack.friendshub.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
