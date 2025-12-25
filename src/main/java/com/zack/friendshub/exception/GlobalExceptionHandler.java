@@ -21,4 +21,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
     }
+
+    @ExceptionHandler(FriendshipRequestAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleFriendshipRequestAlreadyExists(FriendshipRequestAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SelfFriendshipRequestException.class)
+    public ResponseEntity<Map<String, String>> handleSelfFriendshipRequestException(SelfFriendshipRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
 }

@@ -1,5 +1,6 @@
 package com.zack.friendshub.config;
 
+import com.zack.friendshub.constant.SecurityConstants;
 import com.zack.friendshub.security.JwtAuthenticationFilter;
 import com.zack.friendshub.security.JwtUtil;
 import com.zack.friendshub.security.UserDetailsServiceImpl;
@@ -42,8 +43,10 @@ public class SecurityConfig {
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(SecurityConstants.SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/friends/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

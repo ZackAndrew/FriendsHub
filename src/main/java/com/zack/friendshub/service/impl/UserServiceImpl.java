@@ -1,14 +1,16 @@
 package com.zack.friendshub.service.impl;
 
+import com.zack.friendshub.dto.response.PageableDto;
 import com.zack.friendshub.enums.UserStatus;
 import com.zack.friendshub.exception.NotFoundException;
 import com.zack.friendshub.model.User;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @Transactional
@@ -33,8 +35,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
+    public PageableDto<User> findByPage(Pageable pageable) {
+    Page<User> users = userRepo.findAll(pageable);
+        return new PageableDto<>(
+                users.getContent(),
+                users.getTotalElements(),
+                users.getNumber(),
+                users.getTotalPages()
+        );
     }
 
     @Override
