@@ -1,9 +1,9 @@
 package com.zack.friendshub.service;
 
+import com.zack.friendshub.dto.response.PageableDto;
 import com.zack.friendshub.enums.UserStatus;
 import com.zack.friendshub.model.User;
-
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -11,7 +11,7 @@ public interface UserService {
 
     User getUserByUsername(String username);
 
-    List<User> getAllUsers();
+    PageableDto<User> findByPage(Pageable pageable);
 
     User updateUserStatus(Long id, UserStatus status);
 
