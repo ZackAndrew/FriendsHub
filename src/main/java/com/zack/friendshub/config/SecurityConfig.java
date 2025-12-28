@@ -1,6 +1,7 @@
 package com.zack.friendshub.config;
 
 import com.zack.friendshub.constant.SecurityConstants;
+import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.security.JwtAuthenticationFilter;
 import com.zack.friendshub.security.JwtUtil;
 import com.zack.friendshub.security.UserDetailsServiceImpl;
@@ -20,10 +21,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
+    private final UserRepo userRepo;
 
-    public SecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
+
+    public SecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService, UserRepo userRepo) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.userRepo = userRepo;
     }
 
 
@@ -39,7 +43,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService);
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService, userRepo);
 
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth

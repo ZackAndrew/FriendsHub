@@ -1,8 +1,11 @@
 package com.zack.friendshub.mapper;
 
+import com.zack.friendshub.dto.response.FriendshipRequestAcceptResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.model.Friendship;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 public class FriendshipMapper {
@@ -14,6 +17,16 @@ public class FriendshipMapper {
                 friendship.getAddressee().getId(),
                 friendship.getStatus(),
                 friendship.getCreatedAt()
+        );
+    }
+
+    public FriendshipRequestAcceptResponseDto toAcceptResponse(Friendship friendship) {
+        return new FriendshipRequestAcceptResponseDto(
+                friendship.getId(),
+                friendship.getRequester().getId(),
+                friendship.getAddressee().getId(),
+                friendship.getStatus(),
+                LocalDateTime.now()
         );
     }
 }
