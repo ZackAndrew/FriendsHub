@@ -1,5 +1,6 @@
 package com.zack.friendshub.service.impl;
 
+import com.zack.friendshub.dto.response.FriendshipRequestAcceptResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.enums.FriendshipStatus;
 import com.zack.friendshub.exception.FriendshipRequestAlreadyExistsException;
@@ -9,11 +10,14 @@ import com.zack.friendshub.model.Friendship;
 import com.zack.friendshub.model.User;
 import com.zack.friendshub.repository.FriendshipRepo;
 import com.zack.friendshub.repository.UserRepo;
+import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.FriendshipService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 
 @Service
@@ -26,24 +30,22 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final FriendshipMapper friendshipMapper;
 
     @Override
-    public FriendshipRequestResponseDto sendFriendshipRequest(Long addresseeId) {
+    public FriendshipRequestResponseDto sendFriendshipRequest(
+            Long addresseeId,
+            UserPrincipal currentUser
+    ) {
 
-        String currentUsername = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User requester = userRepo.findByUsername(currentUsername)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (requester.getId().equals(addresseeId)) {
+        if (currentUser.getId().equals(addresseeId)) {
             throw new SelfFriendshipRequestException(
                     "User cannot send friendship request to himself"
             );
         }
 
+        User requester = userRepo.findById(currentUser.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Requester not found"));
+
         User addressee = userRepo.findById(addresseeId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         boolean exists = friendshipRepo.existsBetweenUsers(
                 requester.getId(),
@@ -65,5 +67,24 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship saved = friendshipRepo.save(friendship);
 
         return friendshipMapper.toResponse(saved);
+    }
+
+    @Override
+    public FriendshipRequestAcceptResponseDto acceptFriendshipRequest(Long requestId, UserPrincipal currentUser) {
+
+        Friendship friendship = friendshipRepo.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException("Friendship request not found"));
+
+        if (!friendship.getAddressee().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to accept this request");
+        }
+
+        if (friendship.getStatus() != FriendshipStatus.PENDING) {
+            throw new IllegalStateException("Friendship request is not pending");
+        }
+
+        friendship.setStatus(FriendshipStatus.ACCEPTED);
+
+        return friendshipMapper.toAcceptResponse(friendship);
     }
 }

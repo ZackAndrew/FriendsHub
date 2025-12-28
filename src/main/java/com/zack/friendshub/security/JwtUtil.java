@@ -40,7 +40,7 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token, String username) {
-        try{
+        try {
             final String tokenUsername = extractUsername(token);
             return tokenUsername.equals(username) && !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
@@ -55,6 +55,7 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
     private boolean isTokenExpired(String token) {
         return parseClaims(token).getExpiration().before(new Date());
     }
