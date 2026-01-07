@@ -1,6 +1,6 @@
 package com.zack.friendshub.mapper;
 
-import com.zack.friendshub.dto.response.FriendshipRequestAcceptResponseDto;
+import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.model.Friendship;
 import org.springframework.stereotype.Component;
@@ -20,8 +20,8 @@ public class FriendshipMapper {
         );
     }
 
-    public FriendshipRequestAcceptResponseDto toAcceptResponse(Friendship friendship) {
-        return new FriendshipRequestAcceptResponseDto(
+    public FriendshipRequestDecisionResponseDto toDecisionResponse(Friendship friendship) {
+        return new FriendshipRequestDecisionResponseDto(
                 friendship.getId(),
                 friendship.getRequester().getId(),
                 friendship.getAddressee().getId(),

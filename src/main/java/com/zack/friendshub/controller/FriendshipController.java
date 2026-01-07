@@ -1,6 +1,6 @@
 package com.zack.friendshub.controller;
 
-import com.zack.friendshub.dto.response.FriendshipRequestAcceptResponseDto;
+import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.FriendshipService;
@@ -34,18 +34,33 @@ public class FriendshipController {
     }
 
     @PatchMapping("requests/{requestId}/accept")
-    public ResponseEntity<FriendshipRequestAcceptResponseDto> acceptFriendshipRequest(
+    public ResponseEntity<FriendshipRequestDecisionResponseDto> acceptFriendshipRequest(
             @PathVariable Long requestId,
-            @AuthenticationPrincipal UserPrincipal requester
+            @AuthenticationPrincipal UserPrincipal currentUser
     ) {
         log.info("User id={} is attempting to accept friendship request id={}",
-                requester.getId(), requestId);
+                currentUser.getId(), requestId);
 
-        FriendshipRequestAcceptResponseDto response = friendshipService.acceptFriendshipRequest(requestId, requester);
+        FriendshipRequestDecisionResponseDto response = friendshipService.acceptFriendshipRequest(requestId, currentUser);
 
         log.info("Friendship request id={} successfully accepted by user id={}",
-                requestId, requester.getId());
+                requestId, currentUser.getId());
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("requests/{requestId}/decline")
+    public ResponseEntity<FriendshipRequestDecisionResponseDto> declineFriendshipRequest(
+            @PathVariable Long requestId,
+            @AuthenticationPrincipal UserPrincipal currentUser
+    ) {
+        log.info("User id={} is attempting to decline friendship request id={}",
+                currentUser.getId(), requestId);
+
+        FriendshipRequestDecisionResponseDto response = friendshipService.declineFriendshipRequest(requestId, currentUser);
+
+        log.info("Friendship request id={} successfully declined by user id={}",
+                requestId, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 

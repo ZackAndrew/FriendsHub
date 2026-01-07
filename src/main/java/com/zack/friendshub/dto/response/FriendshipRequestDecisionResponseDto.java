@@ -4,7 +4,7 @@ import com.zack.friendshub.enums.FriendshipStatus;
 
 import java.time.LocalDateTime;
 
-public record FriendshipRequestAcceptResponseDto(
+public record FriendshipRequestDecisionResponseDto(
         Long id,
         Long requesterId,
         Long addresseeId,

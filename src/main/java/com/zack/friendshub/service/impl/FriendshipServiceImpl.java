@@ -1,6 +1,6 @@
 package com.zack.friendshub.service.impl;
 
-import com.zack.friendshub.dto.response.FriendshipRequestAcceptResponseDto;
+import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.enums.FriendshipStatus;
 import com.zack.friendshub.exception.FriendshipRequestAlreadyExistsException;
@@ -70,7 +70,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public FriendshipRequestAcceptResponseDto acceptFriendshipRequest(Long requestId, UserPrincipal currentUser) {
+    public FriendshipRequestDecisionResponseDto acceptFriendshipRequest(Long requestId, UserPrincipal currentUser) {
 
         Friendship friendship = friendshipRepo.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Friendship request not found"));
@@ -85,6 +85,23 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship.setStatus(FriendshipStatus.ACCEPTED);
 
-        return friendshipMapper.toAcceptResponse(friendship);
+        return friendshipMapper.toDecisionResponse(friendship);
+    }
+
+    @Override
+    public FriendshipRequestDecisionResponseDto declineFriendshipRequest(Long requestId, UserPrincipal currentUser) {
+
+        Friendship friendship = friendshipRepo.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException("Friendship request not found"));
+
+        if (!currentUser.getId().equals(friendship.getAddressee().getId())) {
+            throw new AccessDeniedException("You are not allowed to decline this request");
+        }
+        if (friendship.getStatus() != FriendshipStatus.PENDING) {
+            throw new IllegalStateException("Friendship request is not pending");
+        }
+
+        friendship.setStatus(FriendshipStatus.DECLINED);
+        return friendshipMapper.toDecisionResponse(friendship);
     }
 }
