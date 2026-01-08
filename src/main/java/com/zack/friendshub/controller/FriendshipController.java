@@ -1,5 +1,6 @@
 package com.zack.friendshub.controller;
 
+import com.zack.friendshub.dto.response.FriendDto;
 import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/friends")
@@ -63,5 +66,18 @@ public class FriendshipController {
                 requestId, currentUser.getId());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping()
+    public ResponseEntity<List<FriendDto>> getAllFriends(@AuthenticationPrincipal UserPrincipal currentUser) {
+
+        log.info("User id={} is attempting to get friends",
+                currentUser.getId());
+        List<FriendDto> response = friendshipService.getAllFriends(currentUser);
+
+        log.info("User id={} successfully get friends",
+                currentUser.getId());
+        return ResponseEntity.ok(response);
+    }
+
 
 }

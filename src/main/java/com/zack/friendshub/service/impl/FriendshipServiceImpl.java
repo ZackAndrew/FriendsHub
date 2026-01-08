@@ -1,5 +1,6 @@
 package com.zack.friendshub.service.impl;
 
+import com.zack.friendshub.dto.response.FriendDto;
 import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
 import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
 import com.zack.friendshub.enums.FriendshipStatus;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -103,5 +105,16 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship.setStatus(FriendshipStatus.DECLINED);
         return friendshipMapper.toDecisionResponse(friendship);
+    }
+
+    @Override
+    public List<FriendDto> getAllFriends(UserPrincipal currentUser) {
+
+        Long userId = currentUser.getId();
+
+        return friendshipRepo.findAllFriends(userId)
+                .stream()
+                .map(friendship -> friendshipMapper.toFriendDto(friendship, userId))
+                .toList();
     }
 }
