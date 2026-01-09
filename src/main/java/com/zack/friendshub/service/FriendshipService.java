@@ -15,4 +15,6 @@ public interface FriendshipService {
     FriendshipRequestDecisionResponseDto declineFriendshipRequest(Long requestId, UserPrincipal currentUser);
 
     List<FriendDto> getAllFriends(UserPrincipal currentUser);
+
+    List<FriendshipRequestResponseDto> getAllPendingFriendshipRequests(UserPrincipal currentUser);
 }
