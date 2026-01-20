@@ -1,5 +1,6 @@
 package com.zack.friendshub.repository;
 
+import com.zack.friendshub.enums.FriendshipStatus;
 import com.zack.friendshub.model.Friendship;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,14 +17,21 @@ public interface FriendshipRepo extends JpaRepository<Friendship, Long> {
                 WHERE (f.requester.id = :u1 AND f.addressee.id = :u2)
                    OR (f.requester.id = :u2 AND f.addressee.id = :u1)
             """)
-    boolean existsBetweenUsers(Long u1, Long u2);
+    boolean existsBetweenUsers(
+            @Param("u1") Long u1,
+            @Param("u2") Long u2
+    );
 
     @Query("""
-    SELECT f FROM Friendship f
-    WHERE f.status = 'ACCEPTED'
-    AND (f.requester.id = :userId OR f.addressee.id = :userId)
-""")
+                SELECT f FROM Friendship f
+                WHERE f.status = 'ACCEPTED'
+                AND (f.requester.id = :userId OR f.addressee.id = :userId)
+            """)
     List<Friendship> findAllFriends(@Param("userId") Long userId);
 
 
+    List<Friendship> findAllByAddresseeIdAndStatus(
+            Long addresseeId,
+            FriendshipStatus status
+    );
 }

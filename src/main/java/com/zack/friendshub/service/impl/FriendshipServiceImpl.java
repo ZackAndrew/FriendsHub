@@ -56,7 +56,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         if (exists) {
             throw new FriendshipRequestAlreadyExistsException(
-                    "Friendship already exists between users " + requester.getId() + " and " + addressee.getId()
+                    "Friendship already exists between users %d and %d".formatted(requester.getId(), addressee.getId())
             );
         }
 
@@ -115,6 +115,16 @@ public class FriendshipServiceImpl implements FriendshipService {
         return friendshipRepo.findAllFriends(userId)
                 .stream()
                 .map(friendship -> friendshipMapper.toFriendDto(friendship, userId))
+                .toList();
+    }
+
+    @Override
+    public List<FriendshipRequestResponseDto> getAllPendingFriendshipRequests(UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
+
+        return friendshipRepo.findAllByAddresseeIdAndStatus(userId, FriendshipStatus.PENDING)
+                .stream()
+                .map(friendshipMapper::toResponse)
                 .toList();
     }
 }

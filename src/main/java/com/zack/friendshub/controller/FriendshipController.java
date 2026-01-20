@@ -79,5 +79,15 @@ public class FriendshipController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("pending")
+    public ResponseEntity<List<FriendshipRequestResponseDto>> getAllPendingFriendshipRequests(@AuthenticationPrincipal UserPrincipal currentUser) {
 
+        log.info("User id={} is attempting to get friendship requests",
+                currentUser.getId());
+        List<FriendshipRequestResponseDto> response = friendshipService.getAllPendingFriendshipRequests(currentUser);
+
+        log.info("User id={} successfully get friendship requests",
+                currentUser.getId());
+        return ResponseEntity.ok(response);
+    }
 }

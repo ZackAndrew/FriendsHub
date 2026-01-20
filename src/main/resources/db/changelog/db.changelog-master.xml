@@ -10,4 +10,5 @@
     <include file="/db/changelog/0001-create-users-table.xml"/>
     <include file="/db/changelog/0002-insert-sample-users.xml"/>
     <include file="/db/changelog/0003-create-friendships-table.xml"/>
+    <include file="/db/changelog/0004-create-availabilities-table.xml"/>
 </databaseChangeLog>
