@@ -49,8 +49,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityConstants.SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/friends/**").permitAll()
+                        .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/friends/**").authenticated()
+                        .requestMatchers("/api/availability/**").authenticated()
                         .anyRequest().authenticated()
                 );
 
