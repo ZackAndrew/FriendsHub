@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendshipRepo extends JpaRepository<Friendship, Long> {
@@ -21,6 +22,11 @@ public interface FriendshipRepo extends JpaRepository<Friendship, Long> {
             @Param("u1") Long u1,
             @Param("u2") Long u2
     );
+
+    @Query("SELECT f FROM Friendship f WHERE " +
+            "(f.requester.id = :userId1 AND f.addressee.id = :userId2) OR " +
+            "(f.requester.id = :userId2 AND f.addressee.id = :userId1)")
+    Optional<Friendship> findFriendshipBetween(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
     @Query("""
                 SELECT f FROM Friendship f
