@@ -17,4 +17,6 @@ public interface FriendshipService {
     List<FriendDto> getAllFriends(UserPrincipal currentUser);
 
     List<FriendshipRequestResponseDto> getAllPendingFriendshipRequests(UserPrincipal currentUser);
+
+    FriendshipRequestResponseDto removeFriend(Long requestId, UserPrincipal currentUser);
 }
