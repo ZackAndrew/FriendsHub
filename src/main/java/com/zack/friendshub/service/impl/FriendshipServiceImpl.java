@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -49,15 +50,32 @@ public class FriendshipServiceImpl implements FriendshipService {
         User addressee = userRepo.findById(addresseeId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        boolean exists = friendshipRepo.existsBetweenUsers(
+        Optional<Friendship> existingFriendshipOpt = friendshipRepo.findFriendshipBetween(
                 requester.getId(),
                 addressee.getId()
         );
 
-        if (exists) {
-            throw new FriendshipRequestAlreadyExistsException(
-                    "Friendship already exists between users %d and %d".formatted(requester.getId(), addressee.getId())
-            );
+        if (existingFriendshipOpt.isPresent()) {
+            Friendship existing = existingFriendshipOpt.get();
+
+            if (existing.getStatus() == FriendshipStatus.ACCEPTED || existing.getStatus() == FriendshipStatus.PENDING) {
+                throw new FriendshipRequestAlreadyExistsException(
+                        "Friendship active or pending between users %d and %d".formatted(requester.getId(), addressee.getId())
+                );
+            }
+            if (existing.getStatus() == FriendshipStatus.DECLINED) {
+                if (existing.getAddressee().getId().equals(requester.getId())) {
+                    existing.setRequester(requester);
+                    existing.setAddressee(addressee);
+                    existing.setStatus(FriendshipStatus.PENDING);
+                    existing.setCreatedAt(LocalDateTime.now());
+
+                    Friendship saved = friendshipRepo.save(existing);
+                    return friendshipMapper.toResponse(saved);
+                } else {
+                    throw new FriendshipRequestAlreadyExistsException("Your previous request was declined.");
+                }
+            }
         }
 
         Friendship friendship = new Friendship();
@@ -126,5 +144,40 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .stream()
                 .map(friendshipMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public FriendshipRequestResponseDto removeFriend(Long requestId, UserPrincipal currentUser) {
+
+        Friendship friendship = friendshipRepo.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException("Friendship request not found"));
+
+        long currentUserId = currentUser.getId();
+
+        boolean isRequester = friendship.getRequester().getId().equals(currentUserId);
+        boolean isAddressee = friendship.getAddressee().getId().equals(currentUserId);
+
+        if (!isRequester && !isAddressee) {
+            throw new AccessDeniedException("Not authorized");
+        }
+
+        if (friendship.getStatus() == FriendshipStatus.DECLINED && isRequester) {
+            throw new AccessDeniedException("You cannot remove a declined friend request.");
+        }
+
+        if (friendship.getStatus() == FriendshipStatus.PENDING && isRequester) {
+            friendshipRepo.delete(friendship);
+            return friendshipMapper.toResponse(friendship);
+        }
+
+        if (isRequester) {
+            User temp = friendship.getRequester();
+            friendship.setRequester(friendship.getAddressee());
+            friendship.setAddressee(temp);
+        }
+
+        friendship.setStatus(FriendshipStatus.DECLINED);
+
+        return friendshipMapper.toResponse(friendship);
     }
 }

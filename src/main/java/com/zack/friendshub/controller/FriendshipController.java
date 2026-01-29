@@ -90,4 +90,14 @@ public class FriendshipController {
                 currentUser.getId());
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("request/{requestId}/removeFriend")
+    public ResponseEntity<FriendshipRequestResponseDto> removeFriend(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long requestId) {
+
+        FriendshipRequestResponseDto response = friendshipService.removeFriend(requestId, currentUser);
+
+        return ResponseEntity.ok(response);
+    }
 }
