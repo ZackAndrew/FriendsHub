@@ -96,7 +96,13 @@ public class FriendshipController {
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long requestId) {
 
+        log.info("REST request to remove friend connection. Request ID: {}, initiated by User ID: {}",
+                requestId, currentUser.getId());
+
         FriendshipRequestResponseDto response = friendshipService.removeFriend(requestId, currentUser);
+
+        log.info("Friendship with Request ID: {} was successfully terminated by User ID: {}",
+                requestId, currentUser.getId());
 
         return ResponseEntity.ok(response);
     }
