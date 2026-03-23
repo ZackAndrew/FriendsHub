@@ -53,4 +53,16 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Long> {
             @Param("rangeStart") LocalDateTime rangeStart,
             @Param("rangeEnd") LocalDateTime rangeEnd
     );
+
+    @Query("""
+            SELECT COUNT(a) > 0 FROM Availability a 
+            WHERE a.user.id = :userId 
+            AND a.startTime <= :meetingStart 
+            AND a.endTime >= :meetingEnd
+            """)
+    boolean isFullyAvailable(
+            @Param("userId") Long userId,
+            @Param("meetingStart") LocalDateTime meetingStart,
+            @Param("meetingEnd") LocalDateTime meetingEnd
+    );
 }

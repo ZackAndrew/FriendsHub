@@ -1,8 +1,8 @@
 package com.zack.friendshub.service.impl;
 
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
-import com.zack.friendshub.dto.response.AvailabilityResponseDto;
-import com.zack.friendshub.dto.response.CommonSlotResponseDto;
+import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
+import com.zack.friendshub.dto.response.availability.CommonSlotResponseDto;
 import com.zack.friendshub.mapper.AvailabilityMapper;
 import com.zack.friendshub.model.Availability;
 import com.zack.friendshub.model.User;

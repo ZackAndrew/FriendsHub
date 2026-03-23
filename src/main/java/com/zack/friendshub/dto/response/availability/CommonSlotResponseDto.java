@@ -1,4 +1,4 @@
-package com.zack.friendshub.dto.response;
+package com.zack.friendshub.dto.response.availability;
 
 import java.time.LocalDateTime;
 

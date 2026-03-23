@@ -1,8 +1,8 @@
 package com.zack.friendshub.controller;
 
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
-import com.zack.friendshub.dto.response.AvailabilityResponseDto;
-import com.zack.friendshub.dto.response.CommonSlotResponseDto;
+import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
+import com.zack.friendshub.dto.response.availability.CommonSlotResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.AvailabilityService;
 import io.swagger.v3.oas.annotations.tags.Tag;

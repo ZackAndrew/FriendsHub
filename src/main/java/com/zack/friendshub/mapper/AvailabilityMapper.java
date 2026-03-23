@@ -1,6 +1,6 @@
 package com.zack.friendshub.mapper;
 
-import com.zack.friendshub.dto.response.AvailabilityResponseDto;
+import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
 import com.zack.friendshub.model.Availability;
 import org.springframework.stereotype.Component;
 
