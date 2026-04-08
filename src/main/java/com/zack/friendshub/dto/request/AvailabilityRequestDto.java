@@ -15,8 +15,8 @@ public record AvailabilityRequestDto(
         @Future(message = "End time must be in future")
         LocalDateTime endTime
 ) {
-    public AvailabilityRequestDto{
-        if(startTime.isAfter(endTime)){
+    public AvailabilityRequestDto {
+        if (startTime.isAfter(endTime)) {
             throw new IllegalArgumentException("Start time can not be after end time");
         }
     }

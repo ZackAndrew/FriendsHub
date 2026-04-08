@@ -1,11 +1,14 @@
 # 🧱 Базовий бекенд-план (тільки модуль №1)
+
 **Проєкт:** FriendHub — спільний сервіс для друзів  
 **Технології:** Java 17+, Spring Boot 3, PostgreSQL, JPA, Security (JWT)
 
 ---
 
 # ## 1. Архітектура проєкту
+
 **Stack:**
+
 - Java 17+
 - Spring Boot 3.x
 - Spring Web
@@ -42,16 +45,19 @@ Copy code
 # ### 2.1 Реєстрація та логін (JWT)
 
 **Ендпоінти:**
+
 - `POST /auth/register` — створення акаунту
 - `POST /auth/login` — отримання JWT
 
 **Валідація:**
+
 - Email — правильний формат
 - Username — унікальний
 - Password — мінімум 8 символів
 - Пароль хешується через BCrypt
 
 **User поля:**
+
 - `id`
 - `username`
 - `email`
@@ -64,11 +70,13 @@ Copy code
 # ### 2.2 Система друзів (Friendship)
 
 **Механіка:**
+
 - користувач відправляє запит у друзі
 - другий приймає або відхиляє
 - після accept — дружба двостороння
 
 **Friendship поля:**
+
 - `id`
 - `requesterId`
 - `receiverId`
@@ -76,6 +84,7 @@ Copy code
 - `createdAt`
 
 **Ендпоінти:**
+
 - `POST /friends/request/{userId}`
 - `POST /friends/accept/{requestId}`
 - `POST /friends/reject/{requestId}`
@@ -87,9 +96,11 @@ Copy code
 # ### 2.3 User Search
 
 **Ендпоінт:**
+
 - `GET /users/search?query=`
 
 **Повертає:**
+
 - username
 - email
 - статус дружби (friend / pending outgoing / pending incoming / none)
@@ -143,6 +154,7 @@ Copy code
 ---
 
 # ✔ Готовий рухатись далі
+
 Можу згенерувати:
 
 - структуру проєкту зі всіма пакетами

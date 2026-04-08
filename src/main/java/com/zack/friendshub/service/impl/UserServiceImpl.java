@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageableDto<User> findByPage(Pageable pageable) {
-    Page<User> users = userRepo.findAll(pageable);
+        Page<User> users = userRepo.findAll(pageable);
         return new PageableDto<>(
                 users.getContent(),
                 users.getTotalElements(),

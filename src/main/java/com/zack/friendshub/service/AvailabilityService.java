@@ -8,7 +8,6 @@ import com.zack.friendshub.security.UserPrincipal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 public interface AvailabilityService {
     AvailabilityResponseDto saveAvailability(AvailabilityRequestDto requestDto, UserPrincipal currentUser);
 
