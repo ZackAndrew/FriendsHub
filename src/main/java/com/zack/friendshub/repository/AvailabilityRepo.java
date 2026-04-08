@@ -26,4 +26,43 @@ public interface AvailabilityRepo extends JpaRepository<Availability, Long> {
             @Param("newStart") LocalDateTime newStart,
             @Param("newEnd") LocalDateTime newEnd
     );
+
+    @Query("""
+            SELECT a FROM Availability a 
+            WHERE a.user.id = :userId 
+            AND a.startTime < :rangeEnd 
+            AND a.endTime > :rangeStart
+            ORDER BY a.startTime ASC
+            """)
+    List<Availability> findAllByUserIdAndDateRange(
+            @Param("userId") Long userId,
+            @Param("rangeStart") LocalDateTime rangeStart,
+            @Param("rangeEnd") LocalDateTime rangeEnd
+    );
+
+    @Query("""
+            SELECT a FROM Availability a 
+            JOIN FETCH a.user 
+            WHERE a.user.id IN :userIds 
+            AND a.startTime < :rangeEnd 
+            AND a.endTime > :rangeStart
+            ORDER BY a.startTime ASC
+            """)
+    List<Availability> findAllByUserIdsAndDateRange(
+            @Param("userIds") List<Long> userIds,
+            @Param("rangeStart") LocalDateTime rangeStart,
+            @Param("rangeEnd") LocalDateTime rangeEnd
+    );
+
+    @Query("""
+            SELECT COUNT(a) > 0 FROM Availability a 
+            WHERE a.user.id = :userId 
+            AND a.startTime <= :meetingStart 
+            AND a.endTime >= :meetingEnd
+            """)
+    boolean isFullyAvailable(
+            @Param("userId") Long userId,
+            @Param("meetingStart") LocalDateTime meetingStart,
+            @Param("meetingEnd") LocalDateTime meetingEnd
+    );
 }

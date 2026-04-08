@@ -1,8 +1,8 @@
 package com.zack.friendshub.service.impl;
 
-import com.zack.friendshub.dto.response.FriendDto;
-import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
-import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestDecisionResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestResponseDto;
 import com.zack.friendshub.enums.FriendshipStatus;
 import com.zack.friendshub.exception.FriendshipRequestAlreadyExistsException;
 import com.zack.friendshub.exception.SelfFriendshipRequestException;

@@ -1,4 +1,4 @@
-package com.zack.friendshub.dto.response;
+package com.zack.friendshub.dto.response.friendship;
 
 import com.zack.friendshub.enums.FriendshipStatus;
 

@@ -1,8 +1,8 @@
 package com.zack.friendshub.mapper;
 
-import com.zack.friendshub.dto.response.FriendDto;
-import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
-import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestDecisionResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestResponseDto;
 import com.zack.friendshub.model.Friendship;
 import com.zack.friendshub.model.User;
 import org.springframework.stereotype.Component;

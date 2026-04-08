@@ -40,4 +40,15 @@ public interface FriendshipRepo extends JpaRepository<Friendship, Long> {
             Long addresseeId,
             FriendshipStatus status
     );
+
+    @Query("""
+            SELECT CASE 
+                WHEN f.requester.id = :userId THEN f.addressee.id 
+                ELSE f.requester.id 
+            END
+            FROM Friendship f
+            WHERE (f.requester.id = :userId OR f.addressee.id = :userId)
+            AND f.status = 'ACCEPTED'
+            """)
+    List<Long> findAllFriendIdsByUserId(@Param("userId") Long userId);
 }

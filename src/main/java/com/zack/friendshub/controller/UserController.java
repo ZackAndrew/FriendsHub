@@ -23,8 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
-
 
 @RestController
 @RequestMapping("/api/users")
@@ -80,7 +78,7 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
     })
     @GetMapping
-    public ResponseEntity<PageableDto<UserResponseDto>> getAllUsers(@ParameterObject @ApiIgnore Pageable pageable) {
+    public ResponseEntity<PageableDto<UserResponseDto>> getAllUsers(@ParameterObject Pageable pageable) {
         log.info("user.fetch-all");
         PageableDto<User> usersPage = userService.findByPage(pageable);
         PageableDto<UserResponseDto> dtoPage = PageableMapper.map(

@@ -1,8 +1,8 @@
 package com.zack.friendshub.controller;
 
-import com.zack.friendshub.dto.response.FriendDto;
-import com.zack.friendshub.dto.response.FriendshipRequestDecisionResponseDto;
-import com.zack.friendshub.dto.response.FriendshipRequestResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestDecisionResponseDto;
+import com.zack.friendshub.dto.response.friendship.FriendshipRequestResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.FriendshipService;
 import io.swagger.v3.oas.annotations.tags.Tag;

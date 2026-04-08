@@ -1,7 +1,8 @@
 package com.zack.friendshub.controller;
 
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
-import com.zack.friendshub.dto.response.AvailabilityResponseDto;
+import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
+import com.zack.friendshub.dto.response.availability.CommonSlotResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.AvailabilityService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @RestController
@@ -57,4 +62,26 @@ public class AvailabilityController {
 
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/common")
+    public ResponseEntity<List<CommonSlotResponseDto>> findCommonSlots(
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to,
+            @AuthenticationPrincipal UserPrincipal currentUser
+    ) {
+        LocalDate startDate = (from != null) ? from : LocalDate.now();
+        LocalDate endDate = (to != null) ? to : startDate.plusDays(7);
+
+        if (ChronoUnit.DAYS.between(startDate, endDate) > 31) {
+            throw new IllegalArgumentException("Search range cannot exceed 31 days");
+        }
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<CommonSlotResponseDto> response = availabilityService.findCommonSlots(startDateTime, endDateTime, currentUser);
+
+        return ResponseEntity.ok(response);
+    }
+
 }
