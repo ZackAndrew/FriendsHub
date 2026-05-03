@@ -6,4 +6,6 @@ import com.zack.friendshub.security.UserPrincipal;
 
 public interface MeetingService {
     MeetingResponseDto sendMeetingRequest(MeetingRequestDto dto, UserPrincipal currentUser);
+
+    MeetingResponseDto acceptMeetingRequest(Long meetingId, UserPrincipal currentUser);
 }
