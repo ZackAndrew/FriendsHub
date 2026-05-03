@@ -2,14 +2,16 @@ package com.zack.friendshub.model;
 
 import com.zack.friendshub.enums.FriendshipStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "friendships")
 public class Friendship {
     @Id
