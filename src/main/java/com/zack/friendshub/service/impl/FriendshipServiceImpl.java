@@ -77,7 +77,6 @@ public class FriendshipServiceImpl implements FriendshipService {
                 }
             }
         }
-
         Friendship friendship = new Friendship();
         friendship.setRequester(requester);
         friendship.setAddressee(addressee);
