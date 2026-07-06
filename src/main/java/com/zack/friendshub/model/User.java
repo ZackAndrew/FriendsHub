@@ -30,7 +30,7 @@ public class User {
 
     @Email
     @NotBlank
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(unique = true, length = 50)
     private String email;
 
     @Enumerated(value = EnumType.STRING)
@@ -44,7 +44,9 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime dateOfRegistration;
 
-    @Column(nullable = false)
     @JsonIgnore
     private String passwordHash;
+
+    @Column(name = "telegram_chat_id", unique = true)
+    private Long telegramChatId;
 }
