@@ -12,4 +12,6 @@
     <include file="/db/changelog/0003-create-friendships-table.xml"/>
     <include file="/db/changelog/0004-create-availabilities-table.xml"/>
     <include file="/db/changelog/0005-create-meeting-table.xml"/>
+    <include file="/db/changelog/0006-add-telegram-id.xml"/>
+    <include file="/db/changelog/0007-create-verification_tokens-table.xml"/>
 </databaseChangeLog>
