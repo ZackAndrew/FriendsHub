@@ -15,7 +15,8 @@ public class UserMapper {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getDateOfRegistration()
+                user.getDateOfRegistration(),
+                user.getTelegramChatId()
         );
     }
 }
