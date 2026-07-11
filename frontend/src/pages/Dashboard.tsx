@@ -15,21 +15,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const [friendsRes, pendingRes, slotsRes] = await Promise.allSettled([
-          friendsApi.getAllFriends(),
-          friendsApi.getPendingRequests(),
-          availabilityApi.getCommonSlots(),
-        ]);
+      const [friendsRes, pendingRes, slotsRes] = await Promise.allSettled([
+        friendsApi.getAllFriends(),
+        friendsApi.getPendingRequests(),
+        availabilityApi.getCommonSlots(),
+      ]);
 
-        if (friendsRes.status === 'fulfilled') setFriends(friendsRes.value.data);
-        if (pendingRes.status === 'fulfilled') setPendingRequests(pendingRes.value.data);
-        if (slotsRes.status === 'fulfilled') setCommonSlots(slotsRes.value.data);
-      } catch (err) {
-        console.error('Failed to load dashboard data', err);
-      } finally {
-        setLoading(false);
-      }
+      if (friendsRes.status === 'fulfilled') setFriends(friendsRes.value.data);
+      if (pendingRes.status === 'fulfilled') setPendingRequests(pendingRes.value.data);
+      if (slotsRes.status === 'fulfilled') setCommonSlots(slotsRes.value.data);
+      setLoading(false);
     };
     loadData();
   }, []);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { availabilityApi } from '../api/availability';
 import type { CommonSlot } from '../types';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ export default function CommonSlots() {
   const [fromDate, setFromDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [toDate, setToDate] = useState(format(addDays(new Date(), 7), 'yyyy-MM-dd'));
 
-  const loadSlots = async () => {
+  const loadSlots = useCallback(async () => {
     setLoading(true);
     try {
       const res = await availabilityApi.getCommonSlots(fromDate, toDate);
@@ -21,11 +21,11 @@ export default function CommonSlots() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fromDate, toDate]);
 
   useEffect(() => {
     loadSlots();
-  }, []);
+  }, [loadSlots]);
 
   const handleRefresh = () => {
     loadSlots();
