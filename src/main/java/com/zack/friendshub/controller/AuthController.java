@@ -28,20 +28,21 @@ public class AuthController {
     private final UserRepo userRepo;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDto> resister(@RequestBody @Valid AuthRequestDto request) {
-        try {
-            log.info("auth.register username={}, email={}", request.username(), request.email());
+    public ResponseEntity<AuthResponseDto> register(@RequestBody @Valid AuthRequestDto request) {
+        log.info("auth.register username={}, email={}", request.username(), request.email());
 
-            AuthResponseDto result = authService.register(request);
+        AuthResponseDto result = authService.register(request);
+
+        // Send verification email (non-blocking, best-effort)
+        try {
             User createdUser = userRepo.findByUsername(result.user().username())
                     .orElseThrow(() -> new UsernameNotFoundException("user not found"));
-
             verificationService.createVerificationToken(createdUser);
-            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            log.error("Error during registration: ", e); // Це покаже точне місце помилки
-            throw e;
+            log.warn("Failed to send verification email (non-critical): {}", e.getMessage());
         }
+
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/login")
