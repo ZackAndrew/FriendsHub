@@ -16,7 +16,11 @@ public class FriendshipMapper {
         return new FriendshipRequestResponseDto(
                 friendship.getId(),
                 friendship.getRequester().getId(),
+                friendship.getRequester().getUsername(),
+                friendship.getRequester().getName(),
                 friendship.getAddressee().getId(),
+                friendship.getAddressee().getUsername(),
+                friendship.getAddressee().getName(),
                 friendship.getStatus(),
                 friendship.getCreatedAt()
         );
@@ -33,13 +37,19 @@ public class FriendshipMapper {
     }
 
     public FriendDto toFriendDto(Friendship friendship, Long userId) {
-        User friend = friendship.getRequester().getId().equals(userId)
-                ? friendship.getRequester()
-                : friendship.getAddressee();
+        // Pick the OTHER user as the friend, not myself
+        User friend;
+        if (friendship.getRequester().getId().equals(userId)) {
+            friend = friendship.getAddressee();
+        } else {
+            friend = friendship.getRequester();
+        }
 
         return new FriendDto(
                 friendship.getId(),
                 friend.getId(),
+                friend.getUsername(),
+                friend.getName(),
                 friendship.getStatus(),
                 friendship.getCreatedAt()
         );
