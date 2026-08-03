@@ -15,6 +15,7 @@ import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.MeetingService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,5 +72,30 @@ public class MeetingServiceImpl implements MeetingService {
 
         Meeting savedMeeting = meetingRepo.save(meeting);
         return meetingMapper.toResponse(savedMeeting, requester, addressee);
+    }
+
+    @Override
+    public MeetingResponseDto acceptMeetingRequest(Long meetingId, UserPrincipal currentUser) {
+        Meeting meeting = meetingRepo.findById(meetingId)
+                .orElseThrow(() -> new EntityNotFoundException("Meeting not found"));
+
+        if (!currentUser.getId().equals(meeting.getParticipantId())) {
+            throw new AccessDeniedException("You are not allowed to accept this meeting");
+        }
+
+        if (!meeting.getStatus().equals(MeetingStatus.PENDING)) {
+            throw new IllegalStateException("The meeting is not pending");
+        }
+
+        meeting.setStatus(MeetingStatus.ACCEPTED);
+        meetingRepo.save(meeting);
+
+        User requester = userRepo.findById(meeting.getOrganizerId())
+                .orElseThrow(() -> new EntityNotFoundException("Requester not found"));
+
+        User addressee = userRepo.findById(currentUser.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Addressee not found"));
+
+        return meetingMapper.toResponse(meeting, requester, addressee);
     }
 }

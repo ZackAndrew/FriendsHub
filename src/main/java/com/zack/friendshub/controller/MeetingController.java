@@ -29,17 +29,9 @@ public class MeetingController {
             @Valid @RequestBody MeetingRequestDto requestDto,
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
-        log.info("REST request to send meeting request from User: {} to Participant: {}. Title: '{}'",
-                currentUser.getUsername(),
-                requestDto.participantUsername(),
-                requestDto.title());
         MeetingResponseDto response = meetingService.sendMeetingRequest(requestDto, currentUser);
 
-        log.info("Meeting request successfully created with ID: {}. Status: {}",
-                response.id(),
-                response.status());
         return ResponseEntity.ok(response);
     }
-
 
 }
