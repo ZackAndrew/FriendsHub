@@ -12,6 +12,7 @@ public record UserResponseDto(
         String email,
         Role role,
         UserStatus status,
-        LocalDateTime dateOfRegistration
+        LocalDateTime dateOfRegistration,
+        Long telegramChatID
 ) {
 }
