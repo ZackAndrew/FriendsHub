@@ -125,7 +125,11 @@ public class FriendshipServiceTest {
         FriendshipRequestResponseDto expectedResponse = new FriendshipRequestResponseDto(
                 100L,
                 requester.getId(),
+                requester.getUsername(),
+                addressee.getUsername(),
                 addressee.getId(),
+                addressee.getUsername(),
+                addressee.getName(),
                 FriendshipStatus.PENDING,
                 LocalDateTime.now()
         );
