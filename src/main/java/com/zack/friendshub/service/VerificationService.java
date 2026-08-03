@@ -5,7 +5,11 @@ import com.zack.friendshub.model.User;
 import com.zack.friendshub.model.VerificationToken;
 
 public interface VerificationService {
-    VerificationToken createVerificationToken(User user);
+    void createVerificationToken(User user);
+
+    VerificationToken createTelegramVerificationToken(User user, Long telegramChatId);
 
     UserResponseDto verifyEmail(String tokenCode);
+
+    UserResponseDto verifyTelegramEmail(String tokenCode);
 }
