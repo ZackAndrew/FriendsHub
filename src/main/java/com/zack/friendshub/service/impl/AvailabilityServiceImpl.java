@@ -57,9 +57,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     @Override
     public List<AvailabilityResponseDto> getUserAvailability(Long friendId, UserPrincipal currentUser) {
         Long requesterId = currentUser.getId();
-        if (!friendshipRepo.existsBetweenUsers(friendId, requesterId)) {
-            throw new EntityNotFoundException("You are not friends");
+        if (!requesterId.equals(friendId)) {
+            if (!friendshipRepo.existsBetweenUsers(friendId, requesterId)) {
+                throw new EntityNotFoundException("You are not friends");
+            }
         }
+
         List<Availability> availabilities = availabilityRepo.findAllByUserId(friendId);
 
         return availabilities.stream()

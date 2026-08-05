@@ -35,10 +35,15 @@ public class AuthController {
         log.info("auth.register username={}, email={}", request.username(), request.email());
 
         AuthResponseDto response = authService.register(request);
-        User createdUser = userRepo.findByUsername(response.user().username())
-                .orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        try {
+            User createdUser = userRepo.findByUsername(response.user().username())
+                    .orElseThrow(() -> new UsernameNotFoundException("user not found"));
 
-        verificationService.createVerificationToken(createdUser);
+            verificationService.createVerificationToken(createdUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.warn("Failed to send verification email (non-critical): {}", e.getMessage());
+        }
         return ResponseEntity.ok(response);
     }
 
