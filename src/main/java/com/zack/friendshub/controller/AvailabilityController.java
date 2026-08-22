@@ -2,7 +2,7 @@ package com.zack.friendshub.controller;
 
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
 import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
-import com.zack.friendshub.dto.response.availability.CommonSlotResponseDto;
+import com.zack.friendshub.dto.response.availability.GroupedCommonSlotResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.AvailabilityService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,27 +44,30 @@ public class AvailabilityController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{friendUsername}")
     public ResponseEntity<List<AvailabilityResponseDto>> getUserAvailability(
-            @PathVariable long userId,
+            @RequestParam(required = false) LocalDateTime from,
+            @RequestParam(required = false) LocalDateTime to,
+            @PathVariable String friendUsername,
             @AuthenticationPrincipal UserPrincipal currentUser
-    ) {
-        log.info("REST request to get availability for User ID: {} by Requester ID: {}",
-                userId, currentUser.getId());
 
-        List<AvailabilityResponseDto> result = availabilityService.getUserAvailability(userId, currentUser);
+    ) {
+        log.info("REST request to get availability for User username: {} by Requester ID: {}",
+                friendUsername, currentUser.getId());
+
+        List<AvailabilityResponseDto> result = availabilityService.getUserAvailability(from, to, friendUsername, currentUser);
 
         if (result.isEmpty()) {
-            log.warn("No availability slots found for User ID: {}", userId);
+            log.warn("No availability slots found for User username: {}", friendUsername);
         } else {
-            log.info("Successfully found {} availability slots for User ID: {}", result.size(), userId);
+            log.info("Successfully found {} availability slots for User username: {}", result.size(), friendUsername);
         }
 
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/common")
-    public ResponseEntity<List<CommonSlotResponseDto>> findCommonSlots(
+    public ResponseEntity<List<GroupedCommonSlotResponseDto>> findCommonSlots(
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @AuthenticationPrincipal UserPrincipal currentUser
@@ -79,7 +82,7 @@ public class AvailabilityController {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
-        List<CommonSlotResponseDto> response = availabilityService.findCommonSlots(startDateTime, endDateTime, currentUser);
+        List<GroupedCommonSlotResponseDto> response = availabilityService.findCommonSlots(startDateTime, endDateTime, currentUser);
 
         return ResponseEntity.ok(response);
     }
