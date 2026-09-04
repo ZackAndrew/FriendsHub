@@ -60,7 +60,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     ) {
         Long requesterId = currentUser.getId();
         User friend = userRepo.findByUsername(friendUsername)
-                .orElseThrow(() -> new EntityNotFoundException("User not found" + friendUsername));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + friendUsername));
         Long friendId = friend.getId();
 
         if (!requesterId.equals(friendId)) {
