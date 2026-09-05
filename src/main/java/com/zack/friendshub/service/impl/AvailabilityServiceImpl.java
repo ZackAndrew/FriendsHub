@@ -2,7 +2,7 @@ package com.zack.friendshub.service.impl;
 
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
 import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
-import com.zack.friendshub.dto.response.availability.CommonSlotResponseDto;
+import com.zack.friendshub.dto.response.availability.GroupedCommonSlotResponseDto;
 import com.zack.friendshub.mapper.AvailabilityMapper;
 import com.zack.friendshub.model.Availability;
 import com.zack.friendshub.model.User;
@@ -13,15 +13,12 @@ import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.AvailabilityService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 @Transactional
@@ -55,15 +52,27 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public List<AvailabilityResponseDto> getUserAvailability(Long friendId, UserPrincipal currentUser) {
+    public List<AvailabilityResponseDto> getUserAvailability(
+            LocalDateTime from,
+            LocalDateTime to,
+            String friendUsername,
+            UserPrincipal currentUser
+    ) {
         Long requesterId = currentUser.getId();
+        User friend = userRepo.findByUsername(friendUsername)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + friendUsername));
+        Long friendId = friend.getId();
+
         if (!requesterId.equals(friendId)) {
             if (!friendshipRepo.existsBetweenUsers(friendId, requesterId)) {
-                throw new EntityNotFoundException("You are not friends");
+                throw new AccessDeniedException("You are not friends");
             }
         }
 
-        List<Availability> availabilities = availabilityRepo.findAllByUserId(friendId);
+        LocalDateTime startTime = (from != null) ? from : LocalDateTime.now();
+        LocalDateTime endTime = (to != null) ? to : LocalDateTime.now().plusMonths(1);
+
+        List<Availability> availabilities = availabilityRepo.findAllByUserIdAndDateRange(friendId, startTime, endTime);
 
         return availabilities.stream()
                 .map(availabilityMapper::toResponse)
@@ -71,7 +80,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     @Override
-    public List<CommonSlotResponseDto> findCommonSlots(
+    public List<GroupedCommonSlotResponseDto> findCommonSlots(
             LocalDateTime from,
             LocalDateTime to,
             UserPrincipal currentUser
@@ -86,41 +95,39 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
         List<Availability> allFriendsSlots = availabilityRepo.findAllByUserIdsAndDateRange(friendIds, from, to);
 
-        Map<User, List<Availability>> slotsByFriend = allFriendsSlots.stream().
-                collect(Collectors.groupingBy(Availability::getUser));
+        record TimeKey(LocalDateTime start, LocalDateTime end) {
+        }
 
-        List<CommonSlotResponseDto> commonSlots = new ArrayList<>();
+        Map<TimeKey, List<String>> slotsMap = new HashMap<>();
 
-        for (Map.Entry<User, List<Availability>> entry : slotsByFriend.entrySet()) {
-            User friend = entry.getKey();
-            List<Availability> currentFriendSlots = entry.getValue();
+        for (Availability mySlot : mySlots) {
+            for (Availability friendSlot : allFriendsSlots) {
 
-            for (Availability mySlot : mySlots) {
-                for (Availability friendSlot : currentFriendSlots) {
+                LocalDateTime overlapStart = mySlot.getStartTime().isAfter(friendSlot.getStartTime())
+                        ? mySlot.getStartTime() : friendSlot.getStartTime();
 
-                    LocalDateTime overlapStart = mySlot.getStartTime().isAfter(friendSlot.getStartTime())
-                            ? mySlot.getStartTime() : friendSlot.getStartTime();
+                LocalDateTime overlapEnd = mySlot.getEndTime().isBefore(friendSlot.getEndTime())
+                        ? mySlot.getEndTime() : friendSlot.getEndTime();
 
-                    LocalDateTime overlapEnd = mySlot.getEndTime().isBefore(friendSlot.getEndTime())
-                            ? mySlot.getEndTime() : friendSlot.getEndTime();
+                if (overlapStart.isBefore(overlapEnd)) {
+                    LocalDateTime finalStart = overlapStart.isAfter(from) ? overlapStart : from;
+                    LocalDateTime finalEnd = overlapEnd.isBefore(to) ? overlapEnd : to;
 
-                    if (overlapStart.isBefore(overlapEnd)) {
-                        LocalDateTime finalStart = overlapStart.isAfter(from) ? overlapStart : from;
-                        LocalDateTime finalEnd = overlapEnd.isBefore(to) ? overlapEnd : to;
-
-                        if (finalStart.isBefore(finalEnd)) {
-                            commonSlots.add(new CommonSlotResponseDto(
-                                    finalStart,
-                                    finalEnd,
-                                    friend.getUsername()
-                            ));
-                        }
+                    if (finalStart.isBefore(finalEnd)) {
+                        TimeKey key = new TimeKey(finalStart, finalEnd);
+                        slotsMap.computeIfAbsent(key, k -> new ArrayList<>())
+                                .add(friendSlot.getUser().getUsername());
                     }
                 }
             }
         }
-        commonSlots.sort(Comparator.comparing(CommonSlotResponseDto::startTime));
-
-        return commonSlots;
+        return slotsMap.entrySet().stream()
+                .map(entry -> new GroupedCommonSlotResponseDto(
+                        entry.getKey().start(),
+                        entry.getKey().end(),
+                        entry.getValue().stream().distinct().sorted().toList()
+                ))
+                .sorted(Comparator.comparing(GroupedCommonSlotResponseDto::startTime))
+                .toList();
     }
 }

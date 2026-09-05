@@ -1,10 +1,11 @@
 package com.zack.friendshub.dto.response.availability;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public record CommonSlotResponseDto(
+public record GroupedCommonSlotResponseDto(
         LocalDateTime startTime,
         LocalDateTime endTime,
-        String friendUsername
+        List<String> friendUsernames
 ) {
 }
