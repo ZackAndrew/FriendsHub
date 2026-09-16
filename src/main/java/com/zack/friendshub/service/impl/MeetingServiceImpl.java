@@ -37,7 +37,7 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingResponseDto sendMeetingRequest(MeetingRequestDto dto, UserPrincipal currentUser) {
         if (currentUser.getUsername().equals(dto.participantUsername())) {
             throw new SelfMeetingRequestException(
-                    "User cannot send meeting request to himself"
+                    "User cannot send meeting request to self"
             );
         }
 
