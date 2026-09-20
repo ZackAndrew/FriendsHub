@@ -27,7 +27,7 @@ public class Meeting {
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
-    @Column(name = "ent_time", nullable = false)
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
