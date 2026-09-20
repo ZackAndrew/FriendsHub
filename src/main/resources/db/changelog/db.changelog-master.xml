@@ -16,4 +16,5 @@
     <include file="/db/changelog/0007-create-verification_tokens-table.xml"/>
     <include file="db/changelog/0008-add-telegram-chat-id-to-verification-token.xml"/>
     <include file="db/changelog/0009-create-bot-states-table.xml"/>
+    <include file="db/changelog/0010-create-meeting-table.xml"/>
 </databaseChangeLog>
