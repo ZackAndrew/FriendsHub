@@ -64,7 +64,7 @@ public class AuthController {
     public ResponseEntity<UserResponseDto> verifyTelegramEmail(@PathVariable("token") String token) {
         UserResponseDto response = verificationService.verifyTelegramEmail(token);
 
-        friendsHubBot.sendTextMessage(response.telegramChatID(),
+        friendsHubBot.sendMessageToUser(response.telegramChatID(),
                 "Вітаємо! 🎉 Твій email успішно підтверджено, а Telegram-акаунт прив'язано до профілю " + response.username() + ".");
         return ResponseEntity.ok(response);
     }
