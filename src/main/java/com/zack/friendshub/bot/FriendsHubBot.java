@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.List;
 
 @Component
 @Slf4j
@@ -34,13 +37,28 @@ public class FriendsHubBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        SendMessage responseMessage = telegramUpdateHandler.handleUpdate(update);
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            List<SendMessage> responses = telegramUpdateHandler.handleUpdate(update);
 
-        if (responseMessage != null) {
-            try {
-                execute(responseMessage);
-            } catch (TelegramApiException e) {
-                log.error("Error sending message to Telegram: {}", e.getMessage());
+            if (responses != null && !responses.isEmpty()) {
+                for (SendMessage msg : responses) {
+                    try {
+                        execute(msg);
+                    } catch (TelegramApiException e) {
+                        log.error("Error sending message to Telegram: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+
+        else if (update.hasCallbackQuery()) {
+            EditMessageText editMessageText = telegramUpdateHandler.handleCallbackQuery(update);
+            if (editMessageText != null) {
+                try {
+                    execute(editMessageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error executing callback query: {}", e.getMessage());
+                }
             }
         }
     }
@@ -49,6 +67,7 @@ public class FriendsHubBot extends TelegramLongPollingBot {
         SendMessage message = SendMessage.builder()
                 .chatId(String.valueOf(chatId))
                 .text(text)
+                .parseMode("HTML")
                 .build();
         try {
             execute(message);

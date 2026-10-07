@@ -1,6 +1,8 @@
 package com.zack.friendshub.bot;
 
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
@@ -36,5 +38,41 @@ public class TelegramKeyboardBuilder {
 
         keyboardMarkup.setKeyboard(List.of(row1, row2));
         return keyboardMarkup;
+    }
+
+    public static InlineKeyboardMarkup buildMeetingActionsMenu(Long meetingId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+        InlineKeyboardButton acceptBtn = new InlineKeyboardButton();
+        acceptBtn.setText("✅ Прийняти");
+        acceptBtn.setCallbackData("ACCEPT_" + meetingId);
+
+        InlineKeyboardButton declineBtn = new InlineKeyboardButton();
+        declineBtn.setText("❌ Відхилити");
+        declineBtn.setCallbackData("DECLINE_" + meetingId);
+
+        rowInline.add(acceptBtn);
+        rowInline.add(declineBtn);
+        rowsInline.add(rowInline);
+
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
+    }
+
+    public static InlineKeyboardMarkup buildCancelMeetingMenu(Long meetingId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+        InlineKeyboardButton cancelBtn = new InlineKeyboardButton();
+        cancelBtn.setText("🗑 Скасувати запит");
+        cancelBtn.setCallbackData("CANCEL_" + meetingId);
+
+        rowInline.add(cancelBtn);
+        rowsInline.add(rowInline);
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
     }
 }
