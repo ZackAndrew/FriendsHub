@@ -3,6 +3,7 @@ package com.zack.friendshub.controller;
 import com.zack.friendshub.bot.FriendsHubBot;
 import com.zack.friendshub.dto.request.AuthRequestDto;
 import com.zack.friendshub.dto.request.LoginRequestDto;
+import com.zack.friendshub.dto.request.PasswordResetRequestDto;
 import com.zack.friendshub.dto.response.AuthResponseDto;
 import com.zack.friendshub.dto.response.UserResponseDto;
 import com.zack.friendshub.model.User;
@@ -10,6 +11,9 @@ import com.zack.friendshub.model.VerificationToken;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.service.AuthService;
 import com.zack.friendshub.service.VerificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,5 +71,26 @@ public class AuthController {
         friendsHubBot.sendMessageToUser(response.telegramChatID(),
                 "Вітаємо! 🎉 Твій email успішно підтверджено, а Telegram-акаунт прив'язано до профілю " + response.username() + ".");
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Request password reset",
+            description = "Initiates the password reset process by generating a token and sending an email. " +
+                    "Always returns 200 OK to prevent email enumeration attacks."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Request processed (email sent if the user exists)"),
+            @ApiResponse(responseCode = "400", description = "Validation error (e.g., invalid email format)")
+    })
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<String> requestPasswordReset(@Valid @RequestBody PasswordResetRequestDto request) {
+
+        log.info("Received password reset request for email: {}", request.email());
+
+        authService.requestPasswordReset(request);
+
+        log.debug("Password reset process completed for email: {}", request.email());
+
+        return ResponseEntity.ok("If the provided email is registered, a password reset link has been sent to it.");
     }
 }

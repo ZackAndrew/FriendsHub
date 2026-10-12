@@ -4,4 +4,6 @@ public interface EmailService {
     void sendVerificationEmail(String toEmail, String token);
 
     void sendTelegramVerificationEmail(String toEmail, String token);
+
+    void sendPasswordResetTokenEmail(String toEmail, String token);
 }

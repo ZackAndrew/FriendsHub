@@ -2,20 +2,27 @@ package com.zack.friendshub.service.impl;
 
 import com.zack.friendshub.dto.request.AuthRequestDto;
 import com.zack.friendshub.dto.request.LoginRequestDto;
+import com.zack.friendshub.dto.request.PasswordResetRequestDto;
 import com.zack.friendshub.dto.response.AuthResponseDto;
 import com.zack.friendshub.enums.Role;
 import com.zack.friendshub.enums.UserStatus;
 import com.zack.friendshub.exception.BadRequestException;
 import com.zack.friendshub.mapper.UserMapper;
+import com.zack.friendshub.model.PasswordResetToken;
 import com.zack.friendshub.model.User;
+import com.zack.friendshub.repository.PasswordResetTokenRepo;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.security.JwtUtil;
 import com.zack.friendshub.service.AuthService;
+import com.zack.friendshub.service.EmailService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -26,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final UserRepo userRepo;
+    private final EmailService emailService;
+    private final PasswordResetTokenRepo passwordResetTokenRepo;
 
     @Override
     public AuthResponseDto register(AuthRequestDto request) {
@@ -67,5 +76,28 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtUtil.generateToken(user.getUsername());
 
         return new AuthResponseDto(token, userMapper.toResponseDto(user));
+    }
+
+    @Override
+    @Transactional
+    public void requestPasswordReset(PasswordResetRequestDto request) {
+        Optional<User> userOpt = userRepo.findByEmail(request.email());
+        if (userOpt.isEmpty()) {
+            return;
+        }
+        User user = userOpt.get();
+
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(15);
+
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryTime(expiryTime)
+                .build();
+
+        passwordResetTokenRepo.save(passwordResetToken);
+
+        emailService.sendPasswordResetTokenEmail(request.email(), token);
     }
 }
