@@ -2,11 +2,13 @@ package com.zack.friendshub.service.impl;
 
 import com.zack.friendshub.dto.request.AuthRequestDto;
 import com.zack.friendshub.dto.request.LoginRequestDto;
+import com.zack.friendshub.dto.request.PasswordResetConfirmDto;
 import com.zack.friendshub.dto.request.PasswordResetRequestDto;
 import com.zack.friendshub.dto.response.AuthResponseDto;
 import com.zack.friendshub.enums.Role;
 import com.zack.friendshub.enums.UserStatus;
 import com.zack.friendshub.exception.BadRequestException;
+import com.zack.friendshub.exception.InvalidTokenException;
 import com.zack.friendshub.mapper.UserMapper;
 import com.zack.friendshub.model.PasswordResetToken;
 import com.zack.friendshub.model.User;
@@ -99,5 +101,23 @@ public class AuthServiceImpl implements AuthService {
         passwordResetTokenRepo.save(passwordResetToken);
 
         emailService.sendPasswordResetTokenEmail(request.email(), token);
+    }
+
+    @Override
+    @Transactional
+    public void confirmPasswordReset(PasswordResetConfirmDto request) {
+        PasswordResetToken token = passwordResetTokenRepo.findByToken(request.token())
+                .orElseThrow(()-> new InvalidTokenException("Invalid or missing token"));
+
+        if (token.getExpiryTime().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepo.delete(token);
+            throw new IllegalArgumentException("Token has expired");
+        }
+
+        User user = token.getUser();
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepo.save(user);
+
+        passwordResetTokenRepo.delete(token);
     }
 }

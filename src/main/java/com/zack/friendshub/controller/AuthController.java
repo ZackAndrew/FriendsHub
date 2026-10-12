@@ -3,6 +3,7 @@ package com.zack.friendshub.controller;
 import com.zack.friendshub.bot.FriendsHubBot;
 import com.zack.friendshub.dto.request.AuthRequestDto;
 import com.zack.friendshub.dto.request.LoginRequestDto;
+import com.zack.friendshub.dto.request.PasswordResetConfirmDto;
 import com.zack.friendshub.dto.request.PasswordResetRequestDto;
 import com.zack.friendshub.dto.response.AuthResponseDto;
 import com.zack.friendshub.dto.response.UserResponseDto;
@@ -92,5 +93,24 @@ public class AuthController {
         log.debug("Password reset process completed for email: {}", request.email());
 
         return ResponseEntity.ok("If the provided email is registered, a password reset link has been sent to it.");
+    }
+
+    @Operation(
+            summary = "Confirm password reset",
+            description = "Sets a new password using the token sent to the user's email. Token and new password must be provided in the request body."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password successfully reset"),
+            @ApiResponse(responseCode = "400", description = "Validation error (e.g., missing token or weak password)"),
+            @ApiResponse(responseCode = "404", description = "Token not found or expired") // Залежить від того, який Exception ви кидаєте в сервісі
+    })
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<String> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmDto request) {
+        log.info("Received request to confirm password reset");
+
+        authService.confirmPasswordReset(request);
+
+        log.info("Password successfully reset");
+        return ResponseEntity.ok("Password has been successfully reset");
     }
 }

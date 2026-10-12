@@ -75,7 +75,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordResetTokenEmail(String toEmail, String token) {
-        String resetLink = "http://localhost:" + serverPort + "/reset-password?token" + token;
+        String resetLink = "http://localhost:" + serverPort + "/reset-password?token=" + token;
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
