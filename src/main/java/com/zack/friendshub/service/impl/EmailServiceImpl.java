@@ -4,6 +4,7 @@ import com.zack.friendshub.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -68,6 +70,42 @@ public class EmailServiceImpl implements EmailService {
 
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    @Override
+    public void sendPasswordResetTokenEmail(String toEmail, String token) {
+        String resetLink = "http://localhost:" + serverPort + "/reset-password?token=" + token;
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail);
+            helper.setSubject("Password Reset Request - FriendsHub");
+
+            String htmlContent = """
+                    <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                        <h2 style="color: #4A90E2;">Password Reset Request</h2>
+                        <p>We received a request to reset the password for your <b>FriendsHub</b> account.</p>
+                        <p>To set a new password, please click the button below (the link is valid for 15 minutes):</p>
+                        <a href="%s" style="display: inline-block; padding: 12px 24px; margin-top: 10px; background-color: #4A90E2; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+                        <p style="margin-top: 20px; font-size: 12px; color: #777;">
+                            If the button doesn't work, copy and paste this link into your browser:<br>
+                            <a href="%s">%s</a>
+                        </p>
+                        <p style="margin-top: 30px;">If you didn't request a password reset, you can safely ignore and delete this email. Your password will remain unchanged.</p>
+                    </div>
+                    """.formatted(resetLink, resetLink, resetLink);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+
+            log.info("Password reset email successfully sent to: {}", toEmail);
+
+        } catch (MessagingException e) {
+            log.error("Error sending password reset email to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Failed to send password reset email", e);
         }
     }
 
