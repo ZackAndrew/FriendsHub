@@ -70,7 +70,7 @@ public class AuthController {
         UserResponseDto response = verificationService.verifyTelegramEmail(token);
 
         friendsHubBot.sendMessageToUser(response.telegramChatID(),
-                "Вітаємо! 🎉 Твій email успішно підтверджено, а Telegram-акаунт прив'язано до профілю " + response.username() + ".");
+                "Welcome! 🎉 Your email has been successfully verified, and your Telegram account is now linked to your profile." + response.username() + ".");
         return ResponseEntity.ok(response);
     }
 

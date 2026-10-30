@@ -45,7 +45,6 @@ public class TelegramUpdateHandler {
     private final MeetingService meetingService;
     private final FriendshipService friendshipService;
 
-    // Сховище для чернеток зустрічей (Машина станів)
     private final Map<Long, MeetingDraft> meetingDrafts = new ConcurrentHashMap<>();
 
     private static class MeetingDraft {
@@ -63,12 +62,11 @@ public class TelegramUpdateHandler {
         long chatId = update.getMessage().getChatId();
         String firstName = update.getMessage().getFrom().getFirstName();
 
-        // Аварійний вихід зі станів (якщо користувач передумав створювати зустріч)
-        if (messageText.equals("/start") || messageText.equalsIgnoreCase("Скасувати")) {
+        if (messageText.equals("/start") || messageText.equalsIgnoreCase("Cancel")) {
             setCurrentState(chatId, BotState.IDLE);
             meetingDrafts.remove(chatId);
-            if (messageText.equalsIgnoreCase("Скасувати")) {
-                SendMessage msg = new SendMessage(String.valueOf(chatId), "Дію скасовано. 🚫");
+            if (messageText.equalsIgnoreCase("Cancel")) {
+                SendMessage msg = new SendMessage(String.valueOf(chatId), "Action canceled. 🚫");
                 msg.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 return List.of(msg);
             }
@@ -77,7 +75,6 @@ public class TelegramUpdateHandler {
         BotState currentState = getCurrentState(chatId);
         Optional<User> userOpt = userRepo.findByTelegramChatId(chatId);
 
-        // --- ОБРОБКА СТАНІВ ---
         if (currentState == BotState.WAITING_FOR_EMAIL) {
             return List.of(handleLinkAccountEmailInput(chatId, messageText.trim()));
         }
@@ -86,25 +83,24 @@ public class TelegramUpdateHandler {
             try {
                 Long friendId = Long.parseLong(messageText.trim());
 
-                // ШУКАЄМО ДРУГА В БАЗІ ЗА ID
                 Optional<User> friendOpt = userRepo.findById(friendId);
                 if (friendOpt.isEmpty()) {
-                    return List.of(new SendMessage(String.valueOf(chatId), "❌ Користувача з таким ID не знайдено. Перевірте список друзів та спробуйте ще раз:"));
+                    return List.of(new SendMessage(String.valueOf(chatId), "❌ User with this ID not found. Check your friends list and try again:"));
                 }
 
                 String friendUsername = friendOpt.get().getUsername();
 
                 MeetingDraft draft = new MeetingDraft();
                 draft.friendId = friendId;
-                draft.participantUsername = friendUsername; // ЗБЕРІГАЄМО ЮЗЕРНЕЙМ ДЛЯ DTO
+                draft.participantUsername = friendUsername;
                 meetingDrafts.put(chatId, draft);
 
                 setCurrentState(chatId, BotState.WAITING_FOR_MEETING_TITLE);
-                SendMessage msg = new SendMessage(String.valueOf(chatId), "✅ Обрано друга: <b>" + friendOpt.get().getName() + "</b>.\n\nТепер введіть <b>назву</b> зустрічі (наприклад, 'Кава' або 'Обговорення проєкту'):");
+                SendMessage msg = new SendMessage(String.valueOf(chatId), "✅ Selected friend: <b>" + friendOpt.get().getName() + "</b>.\n\nNow enter the <b>title</b> of the meeting (e.g., 'Coffee' or 'Project Sync'):");
                 msg.setParseMode("HTML");
                 return List.of(msg);
             } catch (NumberFormatException e) {
-                return List.of(new SendMessage(String.valueOf(chatId), "❌ Помилка: ID має бути числом. Спробуйте ще раз:"));
+                return List.of(new SendMessage(String.valueOf(chatId), "❌ Error: ID must be a number. Try again:"));
             }
         }
 
@@ -116,7 +112,7 @@ public class TelegramUpdateHandler {
             setCurrentState(chatId, BotState.WAITING_FOR_MEETING_DATE);
 
             String exampleDate = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            SendMessage msg = new SendMessage(String.valueOf(chatId), "✅ Назву збережено.\n\nТепер введіть <b>дату та час</b> зустрічі у форматі <code>РРРР-ММ-ДД ГГ:ХХ</code>\n(Наприклад: " + exampleDate + "):");
+            SendMessage msg = new SendMessage(String.valueOf(chatId), "✅ Title saved.\n\nNow enter the <b>date and time</b> of the meeting in the format <code>YYYY-MM-DD HH:mm</code>\n(Example: " + exampleDate + "):");
             msg.setParseMode("HTML");
             return List.of(msg);
         }
@@ -138,19 +134,19 @@ public class TelegramUpdateHandler {
                 meetingDrafts.remove(chatId);
                 setCurrentState(chatId, BotState.IDLE);
 
-                SendMessage msg = new SendMessage(String.valueOf(chatId), "🎉 <b>Зустріч успішно створена!</b> Запит надіслано вашому другу.");
+                SendMessage msg = new SendMessage(String.valueOf(chatId), "🎉 <b>Meeting successfully created!</b> Request sent to your friend.");
                 msg.setParseMode("HTML");
                 msg.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 return List.of(msg);
 
             } catch (DateTimeParseException e) {
-                SendMessage msg = new SendMessage(String.valueOf(chatId), "❌ Неправильний формат дати. Будь ласка, використовуйте формат <code>РРРР-ММ-ДД ГГ:ХХ</code>:");
+                SendMessage msg = new SendMessage(String.valueOf(chatId), "❌ Invalid date format. Please use the format <code>YYYY-MM-DD HH:mm</code>:");
                 msg.setParseMode("HTML");
                 return List.of(msg);
             } catch (Exception e) {
                 setCurrentState(chatId, BotState.IDLE);
                 meetingDrafts.remove(chatId);
-                return List.of(new SendMessage(String.valueOf(chatId), "❌ Помилка при створенні зустрічі: " + e.getMessage()));
+                return List.of(new SendMessage(String.valueOf(chatId), "❌ Error creating meeting: " + e.getMessage()));
             }
         }
 
@@ -168,39 +164,39 @@ public class TelegramUpdateHandler {
         switch (messageText) {
             case "/start":
                 if (isRegistered) {
-                    message.setText("Привіт, <b>" + user.getName() + "</b>! Головне меню відкрито 👇");
+                    message.setText("Hello, <b>" + user.getName() + "</b>! Main menu opened 👇");
                     message.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 } else {
-                    message.setText("Привіт, <b>" + firstName + "</b>! Вітаємо у FriendsHub! 🤝\nОбери дію на клавіатурі знизу:");
+                    message.setText("Hello, <b>" + firstName + "</b>! Welcome to FriendsHub! 🤝\nChoose an action from the keyboard below:");
                     message.setReplyMarkup(TelegramKeyboardBuilder.buildGuestMenu());
                 }
                 messages.add(message);
                 break;
 
-            case "🔗 Прив'язати акаунт":
+            case "🔗 Link Account":
                 if (isRegistered) {
-                    message.setText("Твій Telegram-акаунт уже успішно прив'язаний до профілю! ✅\nОсь твоє меню:");
+                    message.setText("Your Telegram account is already successfully linked to your profile! ✅\nHere is your menu:");
                     message.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 } else {
-                    message.setText("Будь ласка, напиши свій email, який вказано на сайті:");
+                    message.setText("Please enter your email used on the website:");
                     setCurrentState(chatId, BotState.WAITING_FOR_EMAIL);
                 }
                 messages.add(message);
                 break;
 
-            case "📝 Зареєструватися":
+            case "📝 Register":
                 if (isRegistered) {
-                    message.setText("Ти вже зареєстрований! ✅\nОсь твоє меню:");
+                    message.setText("You are already registered! ✅\nHere is your menu:");
                     message.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 } else {
                     handleNewRegistration(chatId, firstName);
-                    message.setText("Реєстрація успішна! 🥳 Твій ID для пошуку: " + chatId);
+                    message.setText("Registration successful! 🥳 Your ID for searching: " + chatId);
                     message.setReplyMarkup(TelegramKeyboardBuilder.buildUserMenu());
                 }
                 messages.add(message);
                 break;
 
-            case "📅 Мої зустрічі":
+            case "📅 My Meetings":
                 if (!isRegistered) {
                     messages.add(showGuestWarning(chatId));
                 } else {
@@ -208,7 +204,7 @@ public class TelegramUpdateHandler {
                 }
                 break;
 
-            case "👥 Мої друзі":
+            case "👥 My Friends":
                 if (!isRegistered) {
                     messages.add(showGuestWarning(chatId));
                 } else {
@@ -217,31 +213,31 @@ public class TelegramUpdateHandler {
                 }
                 break;
 
-            case "⚙️ Налаштування":
+            case "⚙️ Settings":
                 if (!isRegistered) {
                     messages.add(showGuestWarning(chatId));
                 } else {
-                    message.setText("⚙️ <b>Налаштування профілю</b>\n\n" +
-                            "👤 Ім'я: " + user.getName() + "\n" +
-                            "📧 Email: " + (user.getEmail() != null ? user.getEmail() : "Не вказано") + "\n" +
-                            "🔑 Роль: " + user.getRole().name() + "\n\n" +
-                            "<i>Ваш ID для друзів:</i> <code>" + user.getId() + "</code>");
+                    message.setText("⚙️ <b>Profile Settings</b>\n\n" +
+                            "👤 Name: " + user.getName() + "\n" +
+                            "📧 Email: " + (user.getEmail() != null ? user.getEmail() : "Not specified") + "\n" +
+                            "🔑 Role: " + user.getRole().name() + "\n\n" +
+                            "<i>Your ID for friends:</i> <code>" + user.getId() + "</code>");
                     messages.add(message);
                 }
                 break;
 
-            case "➕ Нова зустріч":
+            case "➕ New Meeting":
                 if (!isRegistered) {
                     messages.add(showGuestWarning(chatId));
                 } else {
-                    message.setText("Давайте заплануємо зустріч! 📅\n\nВведіть <b>ID друга</b>, з яким хочете зустрітися (його можна подивитися у вкладці 'Мої друзі').\n\n<i>Щоб скасувати, напишіть 'Скасувати'</i>");
+                    message.setText("Let's schedule a meeting! 📅\n\nEnter the <b>friend's ID</b> you want to meet with (can be found in the 'My Friends' tab).\n\n<i>To cancel, type 'Cancel'</i>");
                     setCurrentState(chatId, BotState.WAITING_FOR_MEETING_FRIEND_ID);
                     messages.add(message);
                 }
                 break;
 
             default:
-                message.setText("Я не зрозумів цю команду. 🤷‍♂️ Будь ласка, скористайся кнопками меню.");
+                message.setText("I didn't understand this command. 🤷‍♂️ Please use the menu buttons.");
                 message.setReplyMarkup(isRegistered ? TelegramKeyboardBuilder.buildUserMenu() : TelegramKeyboardBuilder.buildGuestMenu());
                 messages.add(message);
                 break;
@@ -269,24 +265,24 @@ public class TelegramUpdateHandler {
             if (callbackData.startsWith("ACCEPT_")) {
                 Long meetingId = Long.parseLong(callbackData.split("_")[1]);
                 MeetingResponseDto response = meetingService.acceptMeetingRequest(meetingId, userPrincipal);
-                editMessageText.setText("✅ <b>Зустріч прийнято!</b>\n\n🔹 " + response.title() + "\n⏰ " + response.startTime().toString());
+                editMessageText.setText("✅ <b>Meeting accepted!</b>\n\n🔹 " + response.title() + "\n⏰ " + response.startTime().toString());
 
             } else if (callbackData.startsWith("DECLINE_")) {
                 Long meetingId = Long.parseLong(callbackData.split("_")[1]);
                 MeetingResponseDto response = meetingService.declineMeetingRequest(meetingId, userPrincipal);
-                editMessageText.setText("❌ <b>Зустріч відхилено.</b>\n\n🔹 " + response.title());
+                editMessageText.setText("❌ <b>Meeting declined.</b>\n\n🔹 " + response.title());
 
             } else if (callbackData.startsWith("CANCEL_")) {
                 Long meetingId = Long.parseLong(callbackData.split("_")[1]);
                 MeetingResponseDto response = meetingService.cancelMeetingRequest(meetingId, userPrincipal);
-                editMessageText.setText("🗑 <b>Запит на зустріч скасовано.</b>\n\n🔹 " + response.title());
+                editMessageText.setText("🗑 <b>Meeting request canceled.</b>\n\n🔹 " + response.title());
 
             } else {
-                editMessageText.setText("Невідома дія.");
+                editMessageText.setText("Unknown action.");
             }
         } catch (Exception e) {
             log.error("Error processing callback query: ", e);
-            editMessageText.setText("Виникла помилка під час обробки запиту. 😔 (" + e.getMessage() + ")");
+            editMessageText.setText("An error occurred while processing the request. 😔 (" + e.getMessage() + ")");
         }
 
         return editMessageText;
@@ -303,15 +299,15 @@ public class TelegramUpdateHandler {
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             if (user.getTelegramChatId() != null) {
-                message.setText("Цей email вже прив'язаний до іншого Telegram-акаунту! ❌");
+                message.setText("This email is already linked to another Telegram account! ❌");
             } else {
                 VerificationToken token = verificationService.createTelegramVerificationToken(user, chatId);
                 emailService.sendTelegramVerificationEmail(user.getEmail(), token.getToken());
-                message.setText("На твою пошту <b>" + email + "</b> надіслано лист із підтвердженням! 📬\n" +
-                        "Перевір скриньку та натисни кнопку в листі для завершення прив'язки.");
+                message.setText("A confirmation email has been sent to <b>" + email + "</b>! 📬\n" +
+                        "Check your inbox and click the button in the email to complete the linking.");
             }
         } else {
-            message.setText("Користувача з email " + email + " не знайдено на сайті. Перевірте правильність або напишіть /register.");
+            message.setText("User with email " + email + " not found on the website. Check the spelling or register via /register.");
         }
         return message;
     }
@@ -331,7 +327,7 @@ public class TelegramUpdateHandler {
     private SendMessage showGuestWarning(long chatId) {
         SendMessage msg = new SendMessage();
         msg.setChatId(String.valueOf(chatId));
-        msg.setText("Спочатку потрібно зареєструватися або увійти! 🔒");
+        msg.setText("You need to register or log in first! 🔒");
         msg.setReplyMarkup(TelegramKeyboardBuilder.buildGuestMenu());
         return msg;
     }
@@ -344,14 +340,14 @@ public class TelegramUpdateHandler {
         if (meetings.isEmpty()) {
             SendMessage emptyMsg = new SendMessage();
             emptyMsg.setChatId(String.valueOf(chatId));
-            emptyMsg.setText("У вас поки немає запланованих зустрічей. 📭");
+            emptyMsg.setText("You have no scheduled meetings yet. 📭");
             messages.add(emptyMsg);
             return messages;
         }
 
         SendMessage header = new SendMessage();
         header.setChatId(String.valueOf(chatId));
-        header.setText("<b>Ваші зустрічі:</b>");
+        header.setText("<b>Your Meetings:</b>");
         header.setParseMode("HTML");
         messages.add(header);
 
@@ -359,9 +355,9 @@ public class TelegramUpdateHandler {
             String otherPerson = m.organizerId().equals(user.getId()) ? m.participantName() : m.organizerName();
 
             String text = "🔹 <b>" + m.title() + "</b>\n" +
-                    "👤 З ким: " + otherPerson + "\n" +
-                    "⏰ Початок: " + m.startTime().toString() + "\n" +
-                    "📌 Статус: " + m.status().name();
+                    "👤 With: " + otherPerson + "\n" +
+                    "⏰ Start: " + m.startTime().toString() + "\n" +
+                    "📌 Status: " + m.status().name();
 
             SendMessage msg = new SendMessage();
             msg.setChatId(String.valueOf(chatId));
@@ -385,11 +381,11 @@ public class TelegramUpdateHandler {
         List<FriendDto> friends = friendshipService.getAllFriends(userPrincipal);
 
         if (friends == null || friends.isEmpty()) {
-            return "У вас поки що немає друзів у FriendsHub. 😔\n\n" +
-                    "Поділіться своїм ID з друзями: <code>" + user.getId() + "</code>";
+            return "You don't have any friends in FriendsHub yet. 😔\n\n" +
+                    "Share your ID with friends: <code>" + user.getId() + "</code>";
         }
 
-        StringBuilder sb = new StringBuilder("👥 <b>Ваші друзі:</b>\n\n");
+        StringBuilder sb = new StringBuilder("👥 <b>Your Friends:</b>\n\n");
         for (FriendDto friend : friends) {
             sb.append("👤 <b>").append(friend.name()).append("</b>");
             if (friend.username() != null) {

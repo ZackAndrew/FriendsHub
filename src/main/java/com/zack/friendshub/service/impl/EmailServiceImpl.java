@@ -27,7 +27,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("Підтвердження реєстрації у FriendsHub");
+            helper.setSubject("Registration Confirmation - FriendsHub");
 
             String verificationUrl = "http://localhost:" + serverPort + "/api/auth/verify/" + token;
 
@@ -48,25 +48,24 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setTo(toEmail);
-            helper.setSubject("Прив'язка до FriendsHub Telegram bot");
+            helper.setSubject("Telegram Bot Linking - FriendsHub");
             String verificationUrl = "http://localhost:" + serverPort + "/api/auth/verify-telegram/" + token;
 
             String htmlContent = "<div style=\"font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; text-align: center;\">" +
                     "  <div style=\"max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);\">" +
-                    "    <h2 style=\"color: #333333;\">Запит на прив'язку Telegram 🤝</h2>" +
-                    "    <p style=\"color: #666666; font-size: 16px;\">Хтось (сподіваємось, ви) намагається прив'язати цей email до Telegram-бота FriendsHub.</p>" +
-                    "    <p style=\"color: #666666; font-size: 16px;\">Щоб підтвердити, що це ваш акаунт, натисніть кнопку нижче:</p>" +
+                    "    <h2 style=\"color: #333333;\">Telegram Account Linking Request 🤝</h2>" +
+                    "    <p style=\"color: #666666; font-size: 16px;\">Someone (hopefully you) is trying to link this email to the FriendsHub Telegram bot.</p>" +
+                    "    <p style=\"color: #666666; font-size: 16px;\">To confirm that this is your account, click the button below:</p>" +
                     "    <a href=\"" + verificationUrl + "\" style=\"display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 20px;\">" +
-                    "      Підтвердити прив'язку" +
+                    "      Confirm Linking" +
                     "    </a>" +
-                    "    <p style=\"color: #999999; font-size: 12px; margin-top: 30px;\">Якщо ви не надсилали запит у боті, просто проігноруйте цей лист.</p>" +
+                    "    <p style=\"color: #999999; font-size: 12px; margin-top: 30px;\">If you didn't request this in the bot, please ignore this email.</p>" +
                     "  </div>" +
                     "</div>";
 
             helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
-
 
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
@@ -109,16 +108,15 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-
     private String buildEmailTemplate(String url) {
         return "<div style=\"font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; text-align: center;\">" +
                 "  <div style=\"max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);\">" +
-                "    <h2 style=\"color: #333333;\">Ласкаво просимо до FriendsHub! 🎉</h2>" +
-                "    <p style=\"color: #666666; font-size: 16px;\">Дякуємо за реєстрацію. Будь ласка, підтвердьте свій акаунт, натиснувши на кнопку нижче:</p>" +
+                "    <h2 style=\"color: #333333;\">Welcome to FriendsHub! 🎉</h2>" +
+                "    <p style=\"color: #666666; font-size: 16px;\">Thank you for registering. Please confirm your account by clicking the button below:</p>" +
                 "    <a href=\"" + url + "\" style=\"display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 5px; margin-top: 20px;\">" +
-                "      Активувати акаунт" +
+                "      Activate Account" +
                 "    </a>" +
-                "    <p style=\"color: #999999; font-size: 12px; margin-top: 30px;\">Якщо ви не реєструвалися на нашому сайті, просто ігноруйте цей лист.</p>" +
+                "    <p style=\"color: #999999; font-size: 12px; margin-top: 30px;\">If you didn't register on our website, simply ignore this email.</p>" +
                 "  </div>" +
                 "</div>";
     }
