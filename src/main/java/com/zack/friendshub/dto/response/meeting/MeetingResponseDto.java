@@ -1,18 +1,15 @@
 package com.zack.friendshub.dto.response.meeting;
 
-import com.zack.friendshub.enums.MeetingStatus;
-
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record MeetingResponseDto(
         Long id,
         String title,
         Long organizerId,
         String organizerName,
-        Long participantId,
-        String participantName,
+        List<ParticipantDto> participants,
         LocalDateTime startTime,
-        LocalDateTime endTime,
-        MeetingStatus status
+        LocalDateTime endTime
 ) {
 }

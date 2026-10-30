@@ -4,6 +4,7 @@ import com.zack.friendshub.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +19,5 @@ public interface UserRepo extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     Optional<User> findByTelegramChatId(long chatId);
-}
+
+    List<User> findAllByUsernameIn(List<String> usernames);}

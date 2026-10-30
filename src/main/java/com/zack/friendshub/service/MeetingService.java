@@ -13,7 +13,7 @@ public interface MeetingService {
 
     MeetingResponseDto declineMeetingRequest(Long meetingId, UserPrincipal currentUser);
 
-    MeetingResponseDto cancelMeetingRequest(Long meetingId, UserPrincipal currentUser);
+    void cancelMeetingRequest(Long meetingId, UserPrincipal currentUser);
 
     List<MeetingResponseDto> getPendingMeetings(UserPrincipal currentUser);
 

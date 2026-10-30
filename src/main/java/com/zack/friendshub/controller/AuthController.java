@@ -1,6 +1,5 @@
 package com.zack.friendshub.controller;
 
-import com.zack.friendshub.bot.FriendsHubBot;
 import com.zack.friendshub.dto.request.AuthRequestDto;
 import com.zack.friendshub.dto.request.LoginRequestDto;
 import com.zack.friendshub.dto.request.PasswordResetConfirmDto;
@@ -8,7 +7,6 @@ import com.zack.friendshub.dto.request.PasswordResetRequestDto;
 import com.zack.friendshub.dto.response.AuthResponseDto;
 import com.zack.friendshub.dto.response.UserResponseDto;
 import com.zack.friendshub.model.User;
-import com.zack.friendshub.model.VerificationToken;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.service.AuthService;
 import com.zack.friendshub.service.VerificationService;
@@ -33,7 +31,7 @@ public class AuthController {
     private final AuthService authService;
     private final VerificationService verificationService;
     private final UserRepo userRepo;
-    private final FriendsHubBot friendsHubBot;
+//    private final FriendsHubBot friendsHubBot;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> resister(@RequestBody @Valid AuthRequestDto request) {
@@ -65,14 +63,14 @@ public class AuthController {
         return ResponseEntity.ok(verificationService.verifyEmail(token));
     }
 
-    @GetMapping("/verify-telegram/{token}")
-    public ResponseEntity<UserResponseDto> verifyTelegramEmail(@PathVariable("token") String token) {
-        UserResponseDto response = verificationService.verifyTelegramEmail(token);
-
-        friendsHubBot.sendMessageToUser(response.telegramChatID(),
-                "Вітаємо! 🎉 Твій email успішно підтверджено, а Telegram-акаунт прив'язано до профілю " + response.username() + ".");
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/verify-telegram/{token}")
+//    public ResponseEntity<UserResponseDto> verifyTelegramEmail(@PathVariable("token") String token) {
+//        UserResponseDto response = verificationService.verifyTelegramEmail(token);
+//
+//        friendsHubBot.sendMessageToUser(response.telegramChatID(),
+//                "Вітаємо! 🎉 Твій email успішно підтверджено, а Telegram-акаунт прив'язано до профілю " + response.username() + ".");
+//        return ResponseEntity.ok(response);
+//    }
 
     @Operation(
             summary = "Request password reset",

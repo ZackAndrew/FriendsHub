@@ -18,4 +18,5 @@
     <include file="db/changelog/0009-create-bot-states-table.xml"/>
     <include file="db/changelog/0010-create-meeting-table.xml"/>
     <include file="db/changelog/0011-create-password-reset-token-table.xml"/>
+    <include file="db/changelog/0012-refactor-meetings-to-group.xml"/>
 </databaseChangeLog>

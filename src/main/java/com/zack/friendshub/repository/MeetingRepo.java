@@ -1,6 +1,5 @@
 package com.zack.friendshub.repository;
 
-import com.zack.friendshub.enums.MeetingStatus;
 import com.zack.friendshub.model.Meeting;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,10 +10,8 @@ import java.util.List;
 
 @Repository
 public interface MeetingRepo extends JpaRepository<Meeting, Long> {
-    @Query("SELECT m FROM Meeting m WHERE m.organizerId = :userId OR m.participantId = :userId")
+    @Query("SELECT DISTINCT m FROM Meeting m LEFT JOIN m.participants p WHERE m.organizerId = :userId OR p.user.id = :userId")
     List<Meeting> findAllUserMeetings(@Param("userId") Long userId);
 
-    List<Meeting> findAllByParticipantIdAndStatus(Long participantId, MeetingStatus status);
-
-    List<Meeting> findAllByOrganizerIdAndStatus(Long organizerId, MeetingStatus status);
+    List<Meeting> findAllByOrganizerId(Long organizerId);
 }

@@ -6,11 +6,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record MeetingRequestDto(
-        @NotBlank(message = "Participant ID is required")
-        String participantUsername,
+
+        List<String> participantNames,
 
         @NotNull(message = "Start time is required")
         @Future(message = "Meeting has start in the future")

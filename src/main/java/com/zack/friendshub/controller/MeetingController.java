@@ -29,7 +29,7 @@ public class MeetingController {
     private final MeetingService meetingService;
 
     @PostMapping
-    @Operation(summary = "Create a new meeting request", description = "Sends a meeting request to another user based on available time slots.")
+    @Operation(summary = "Create a new meeting request", description = "Sends a group meeting request to multiple participants based on available time slots.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Meeting request successfully created"),
             @ApiResponse(responseCode = "400", description = "Invalid input or time slots overlap", content = @Content),
@@ -40,7 +40,7 @@ public class MeetingController {
             @Valid @RequestBody MeetingRequestDto requestDto,
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
-        log.info("User ID {} is sending a meeting request to username: {}", currentUser.getId(), requestDto.participantUsername());
+        log.info("User ID {} is sending a group meeting request", currentUser.getId());
         MeetingResponseDto response = meetingService.sendMeetingRequest(requestDto, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -49,7 +49,7 @@ public class MeetingController {
     @Operation(summary = "Accept a meeting request", description = "Allows a participant to accept an incoming meeting request.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Meeting successfully accepted"),
-            @ApiResponse(responseCode = "400", description = "Meeting is not in PENDING state", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Meeting is not in PENDING or DECLINED state", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content),
             @ApiResponse(responseCode = "403", description = "User is not allowed to accept this meeting", content = @Content),
             @ApiResponse(responseCode = "404", description = "Meeting not found", content = @Content)
@@ -66,7 +66,7 @@ public class MeetingController {
     @Operation(summary = "Decline a meeting request", description = "Allows a participant to decline an incoming meeting request.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Meeting successfully declined"),
-            @ApiResponse(responseCode = "400", description = "Meeting is not in PENDING state", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Meeting is already declined", content = @Content),
             @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content),
             @ApiResponse(responseCode = "403", description = "User is not allowed to decline this meeting", content = @Content),
             @ApiResponse(responseCode = "404", description = "Meeting not found", content = @Content)
@@ -79,21 +79,21 @@ public class MeetingController {
         return ResponseEntity.ok(meetingService.declineMeetingRequest(id, currentUser));
     }
 
-    @PatchMapping("/{id}/cancel")
-    @Operation(summary = "Cancel a meeting request", description = "Allows an organizer to cancel an existing meeting request.")
+    @DeleteMapping("/{id}/cancel")
+    @Operation(summary = "Cancel a meeting request", description = "Allows an organizer to completely cancel and delete an existing meeting.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Meeting successfully canceled"),
-            @ApiResponse(responseCode = "400", description = "Meeting is already canceled or declined", content = @Content),
+            @ApiResponse(responseCode = "204", description = "Meeting successfully canceled and deleted"),
             @ApiResponse(responseCode = "401", description = "Unauthorized access", content = @Content),
             @ApiResponse(responseCode = "403", description = "User is not the organizer of this meeting", content = @Content),
             @ApiResponse(responseCode = "404", description = "Meeting not found", content = @Content)
     })
-    public ResponseEntity<MeetingResponseDto> cancelMeetingRequest(
+    public ResponseEntity<Void> cancelMeetingRequest(
             @PathVariable Long id,
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
         log.info("User ID {} is attempting to cancel meeting ID {}", currentUser.getId(), id);
-        return ResponseEntity.ok(meetingService.cancelMeetingRequest(id, currentUser));
+        meetingService.cancelMeetingRequest(id, currentUser);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
@@ -123,17 +123,17 @@ public class MeetingController {
     }
 
     @GetMapping("/outgoing")
-    @Operation(summary = "Get pending outgoing meetings", description = "Retrieves a list of meeting requests sent by the user that are still pending.")
+    @Operation(summary = "Get all outgoing meetings", description = "Retrieves a list of all meetings organized by the user.")
     @ApiResponse(responseCode = "200", description = "List retrieved successfully")
     public ResponseEntity<List<MeetingResponseDto>> getOutgoingMeetings(
             @AuthenticationPrincipal UserPrincipal currentUser
     ) {
-        log.debug("User ID {} is fetching their pending outgoing meetings", currentUser.getId());
+        log.debug("User ID {} is fetching their outgoing meetings", currentUser.getId());
         return ResponseEntity.ok(meetingService.getOutgoingMeetings(currentUser));
     }
 
     @GetMapping("/my")
-    @Operation(summary = "Get all user meetings", description = "Retrieves all meetings where the user is either an organizer or a participant.")
+    @Operation(summary = "Get all user meetings", description = "Retrieves all meetings where the user is either an organizer or an invited participant.")
     @ApiResponse(responseCode = "200", description = "List retrieved successfully")
     public ResponseEntity<List<MeetingResponseDto>> getUserMeetings(
             @AuthenticationPrincipal UserPrincipal currentUser
