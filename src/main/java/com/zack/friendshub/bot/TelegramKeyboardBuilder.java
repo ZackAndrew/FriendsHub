@@ -16,8 +16,8 @@ public class TelegramKeyboardBuilder {
         keyboardMarkup.setResizeKeyboard(true);
 
         KeyboardRow row = new KeyboardRow();
-        row.add("🔗 Прив'язати акаунт");
-        row.add("📝 Зареєструватися");
+        row.add("🔗 Link Account");
+        row.add("📝 Register");
 
         keyboardMarkup.setKeyboard(List.of(row));
         return keyboardMarkup;
@@ -29,12 +29,12 @@ public class TelegramKeyboardBuilder {
         keyboardMarkup.setResizeKeyboard(true);
 
         KeyboardRow row1 = new KeyboardRow();
-        row1.add("📅 Мої зустрічі");
-        row1.add("👥 Мої друзі");
+        row1.add("📅 My Meetings");
+        row1.add("👥 My Friends");
 
         KeyboardRow row2 = new KeyboardRow();
-        row2.add("➕ Нова зустріч");
-        row2.add("⚙️ Налаштування");
+        row2.add("➕ New Meeting");
+        row2.add("⚙️ Settings");
 
         keyboardMarkup.setKeyboard(List.of(row1, row2));
         return keyboardMarkup;
@@ -46,11 +46,11 @@ public class TelegramKeyboardBuilder {
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
 
         InlineKeyboardButton acceptBtn = new InlineKeyboardButton();
-        acceptBtn.setText("✅ Прийняти");
+        acceptBtn.setText("✅ Accept");
         acceptBtn.setCallbackData("ACCEPT_" + meetingId);
 
         InlineKeyboardButton declineBtn = new InlineKeyboardButton();
-        declineBtn.setText("❌ Відхилити");
+        declineBtn.setText("❌ Decline");
         declineBtn.setCallbackData("DECLINE_" + meetingId);
 
         rowInline.add(acceptBtn);
@@ -67,7 +67,7 @@ public class TelegramKeyboardBuilder {
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
 
         InlineKeyboardButton cancelBtn = new InlineKeyboardButton();
-        cancelBtn.setText("🗑 Скасувати запит");
+        cancelBtn.setText("🗑 Cancel Request");
         cancelBtn.setCallbackData("CANCEL_" + meetingId);
 
         rowInline.add(cancelBtn);
