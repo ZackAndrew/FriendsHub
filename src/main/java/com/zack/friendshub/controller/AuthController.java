@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @Slf4j
@@ -110,5 +112,10 @@ public class AuthController {
 
         log.info("Password successfully reset");
         return ResponseEntity.ok("Password has been successfully reset");
+    }
+
+    @GetMapping("/oauth2/success")
+    public ResponseEntity<?> oauth2Success(@RequestParam("token") String token) {
+        return ResponseEntity.ok(Map.of("message", "Succesfull authorization", "token", token));
     }
 }
