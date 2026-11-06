@@ -1,10 +1,12 @@
 package com.zack.friendshub.controller;
 
+import com.google.api.services.calendar.model.Event;
 import com.zack.friendshub.dto.request.AvailabilityRequestDto;
 import com.zack.friendshub.dto.response.availability.AvailabilityResponseDto;
 import com.zack.friendshub.dto.response.availability.GroupedCommonSlotResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.AvailabilityService;
+import com.zack.friendshub.service.GoogleCalendarService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/availability")
@@ -27,6 +30,7 @@ import java.util.List;
 public class AvailabilityController {
 
     private final AvailabilityService availabilityService;
+    private final GoogleCalendarService googleCalendarService;
 
     @PostMapping
     public ResponseEntity<AvailabilityResponseDto> addAvailability(
@@ -86,5 +90,17 @@ public class AvailabilityController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/calendar/events/{userId}")
+    public List<String> getMyEvents(@PathVariable Long userId) throws Exception {
+        List<Event> events = googleCalendarService.getUpcomingEvents(userId);
+
+        return events.stream()
+                .map(event -> String.format("%s (%s)",
+                        event.getSummary(),
+                        event.getStart().getDateTime() != null ? event.getStart().getDateTime() : event.getStart().getDate())
+                ).collect(Collectors.toList());
+    }
+
 
 }
