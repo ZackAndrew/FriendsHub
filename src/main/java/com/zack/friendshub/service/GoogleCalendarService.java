@@ -44,41 +44,48 @@ public class GoogleCalendarService {
                 .setRefreshToken(userIntegration.getRefreshToken());
     }
 
-    public List<Event> getUpcomingEvents(Long userId) throws Exception {
-        Credential credential = getCredentialForUser(userId);
+    public List<Event> getUserEvents(Long userId, java.time.LocalDateTime windowStart, java.time.LocalDateTime windowEnd) {
+        try {
+            Credential credential = getCredentialForUser(userId);
 
-        Calendar service = new Calendar.Builder(
-                new com.google.api.client.http.javanet.NetHttpTransport(),
-                com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
-                credential)
-                .setApplicationName("FriendHub")
-                .build();
+            Calendar service = new Calendar.Builder(
+                    new com.google.api.client.http.javanet.NetHttpTransport(),
+                    com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
+                    credential)
+                    .setApplicationName("FriendHub")
+                    .build();
 
-        DateTime now = new DateTime(System.currentTimeMillis());
-        List<String> activeCalendarIds = getActiveEventIds(service);
-        List<Event> allEvents = new ArrayList<>();
+            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            DateTime timeMin = new DateTime(windowStart.atZone(zone).toInstant().toEpochMilli());
+            DateTime timeMax = new DateTime(windowEnd.atZone(zone).toInstant().toEpochMilli());
 
-        for (String eventId : activeCalendarIds) {
-            try {
-                Events events = service.events().list(eventId)
-                        .setMaxResults(10)
-                        .setTimeMin(now)
-                        .setOrderBy("startTime")
-                        .setSingleEvents(true)
-                        .execute();
+            List<String> activeCalendarIds = getActiveEventIds(service);
+            List<Event> allEvents = new ArrayList<>();
 
-                if (events.getItems() != null) {
-                    allEvents.addAll(events.getItems());
+            for (String calendarId : activeCalendarIds) {
+                try {
+                    Events events = service.events().list(calendarId)
+                            .setTimeMin(timeMin)
+                            .setTimeMax(timeMax)
+                            .setOrderBy("startTime")
+                            .setSingleEvents(true)
+                            .execute();
+
+                    if (events.getItems() != null) {
+                        allEvents.addAll(events.getItems());
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to get events for calendar {}: {}", calendarId, e.getMessage());
                 }
-            } catch (Exception e) {
-                log.warn("Failed to get events for calendar {}: {}"
-                        , eventId, e.getMessage());
             }
+
+            allEvents.sort(Comparator.comparingLong(this::getEventStartTime));
+            return allEvents;
+
+        } catch (Exception e) {
+            log.error("Failed to fetch Google Calendar events for user {}: {}", userId, e.getMessage());
+            return new ArrayList<>();
         }
-
-        allEvents.sort(Comparator.comparingLong(this::getEventStartTime));
-
-        return allEvents;
     }
 
     private long getEventStartTime(Event event) {

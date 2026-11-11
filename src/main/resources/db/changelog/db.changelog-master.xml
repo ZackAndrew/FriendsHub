@@ -21,5 +21,6 @@
     <include file="db/changelog/0012-refactor-meetings-to-group.xml"/>
     <include file="db/changelog/0013-create-user-integrations-table.xml"/>
     <include file="db/changelog/0014-create-user-routines-table.xml"/>
-    <include file="/db/changelog/0015-drop-availabilities-table.xml"/>
+    <include file="db/changelog/0015-drop-availabilities-table.xml"/>
+    <include file="db/changelog/0016-add-meeting-polls.xml"/>
 </databaseChangeLog>

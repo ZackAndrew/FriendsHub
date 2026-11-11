@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="drop-not-null-meeting-dates" author="Andrii Zakordonskyi">
+        <dropNotNullConstraint tableName="meeting" columnName="start_time" columnDataType="TIMESTAMP"/>
+        <dropNotNullConstraint tableName="meeting" columnName="end_time" columnDataType="TIMESTAMP"/>
+    </changeSet>
+
+    <changeSet id="add-voted-to-meeting-participants" author="zack">
+        <addColumn tableName="meeting_participants">
+            <column name="voted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="create-meeting-options-table" author="zack">
+        <createTable tableName="meeting_options">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_meeting_options"/>
+            </column>
+            <column name="meeting_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="votes_count" type="INTEGER" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="meeting_options" baseColumnNames="meeting_id"
+                                 constraintName="fk_meeting_options_meeting_id"
+                                 referencedTableName="meeting" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-meeting-votes-table" author="zack">
+        <createTable tableName="meeting_votes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_meeting_votes"/>
+            </column>
+            <column name="participant_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="option_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="meeting_votes" baseColumnNames="participant_id"
+                                 constraintName="fk_meeting_votes_participant_id"
+                                 referencedTableName="meeting_participants" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="meeting_votes" baseColumnNames="option_id"
+                                 constraintName="fk_meeting_votes_option_id"
+                                 referencedTableName="meeting_options" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+</databaseChangeLog>

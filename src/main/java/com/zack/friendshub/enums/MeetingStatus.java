@@ -4,5 +4,7 @@ public enum MeetingStatus {
     PENDING,
     ACCEPTED,
     CANCELED,
-    DECLINED
+    DECLINED,
+    VOTING,
+    SCHEDULED
 }

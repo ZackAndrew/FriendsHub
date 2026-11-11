@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface MeetingRepo extends JpaRepository<Meeting, Long> {
-    @Query("SELECT DISTINCT m FROM Meeting m LEFT JOIN m.participants p WHERE m.organizerId = :userId OR p.user.id = :userId")
+    @Query("SELECT DISTINCT m FROM Meeting m LEFT JOIN m.participants p WHERE m.organizer.id = :userId OR p.user.id = :userId")
     List<Meeting> findAllUserMeetings(@Param("userId") Long userId);
 
     List<Meeting> findAllByOrganizerId(Long organizerId);

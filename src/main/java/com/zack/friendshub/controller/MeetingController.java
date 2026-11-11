@@ -1,6 +1,8 @@
 package com.zack.friendshub.controller;
 
+import com.zack.friendshub.dto.request.MeetingProposalDto;
 import com.zack.friendshub.dto.request.MeetingRequestDto;
+import com.zack.friendshub.dto.request.MeetingVoteDto;
 import com.zack.friendshub.dto.response.meeting.MeetingResponseDto;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.MeetingService;
@@ -140,5 +142,34 @@ public class MeetingController {
     ) {
         log.debug("User ID {} is fetching all their meetings", currentUser.getId());
         return ResponseEntity.ok(meetingService.getUserMeetings(currentUser));
+    }
+
+    @PostMapping("/propose")
+    public ResponseEntity<MeetingResponseDto> proposeSmartMeeting(
+            @Valid @RequestBody MeetingProposalDto dto,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+
+        MeetingResponseDto response = meetingService.proposeSmartMeeting(dto, currentUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{meetingId}/vote")
+    public ResponseEntity<MeetingResponseDto> voteForOptions(
+            @PathVariable Long meetingId,
+            @Valid @RequestBody MeetingVoteDto dto,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+
+        MeetingResponseDto response = meetingService.voteForOptions(meetingId, dto, currentUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{meetingId}/finalize")
+    public ResponseEntity<MeetingResponseDto> finalizeSmartMeeting(
+            @PathVariable Long meetingId,
+            @RequestParam(required = false) Long winningOptionId,
+            @AuthenticationPrincipal UserPrincipal currentUser) {
+
+        MeetingResponseDto response = meetingService.finalizeSmartMeeting(meetingId, winningOptionId, currentUser);
+        return ResponseEntity.ok(response);
     }
 }

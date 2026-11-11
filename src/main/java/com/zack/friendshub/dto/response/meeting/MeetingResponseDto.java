@@ -1,5 +1,7 @@
 package com.zack.friendshub.dto.response.meeting;
 
+import com.zack.friendshub.dto.response.MeetingOptionDto;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +12,7 @@ public record MeetingResponseDto(
         String organizerName,
         List<ParticipantDto> participants,
         LocalDateTime startTime,
-        LocalDateTime endTime
+        LocalDateTime endTime,
+        List<MeetingOptionDto> options
 ) {
 }

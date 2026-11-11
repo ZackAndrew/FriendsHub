@@ -5,6 +5,9 @@ import com.zack.friendshub.enums.MeetingStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -33,4 +36,12 @@ public class MeetingParticipant {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MeetingRole role;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean voted = false;
+
+    @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MeetingVote> votes = new ArrayList<>();
 }
