@@ -40,4 +40,7 @@ public class Meeting {
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MeetingOption> options = new ArrayList<>();
+
+    @Column(name = "google_event_id")
+    private String googleEventId;
 }

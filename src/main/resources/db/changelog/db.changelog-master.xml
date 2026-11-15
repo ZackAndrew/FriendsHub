@@ -23,4 +23,5 @@
     <include file="db/changelog/0014-create-user-routines-table.xml"/>
     <include file="db/changelog/0015-drop-availabilities-table.xml"/>
     <include file="db/changelog/0016-add-meeting-polls.xml"/>
+    <include file="db/changelog/0017-add-google-event-id.xml"/>
 </databaseChangeLog>

@@ -2,22 +2,26 @@ package com.zack.friendshub.service;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.model.CalendarList;
-import com.google.api.services.calendar.model.CalendarListEntry;
-import com.google.api.services.calendar.model.Events;
+import com.google.api.services.calendar.model.*;
+import com.zack.friendshub.model.Meeting;
 import com.zack.friendshub.model.UserIntegration;
 import com.zack.friendshub.repository.UserIntegrationRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.google.api.services.calendar.model.Event;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import static com.google.api.client.json.gson.GsonFactory.getDefaultInstance;
 
 @Service
 @RequiredArgsConstructor
@@ -37,25 +41,25 @@ public class GoogleCalendarService {
                         .orElseThrow(() -> new RuntimeException("Google integration not found"));
 
         return new GoogleCredential.Builder()
-                .setTransport(new com.google.api.client.http.javanet.NetHttpTransport())
-                .setJsonFactory(com.google.api.client.json.gson.GsonFactory.getDefaultInstance())
+                .setTransport(new NetHttpTransport())
+                .setJsonFactory(getDefaultInstance())
                 .setClientSecrets(clientId, clientSecret)
                 .build()
                 .setRefreshToken(userIntegration.getRefreshToken());
     }
 
-    public List<Event> getUserEvents(Long userId, java.time.LocalDateTime windowStart, java.time.LocalDateTime windowEnd) {
+    public List<Event> getUserEvents(Long userId, LocalDateTime windowStart, LocalDateTime windowEnd) {
         try {
             Credential credential = getCredentialForUser(userId);
 
             Calendar service = new Calendar.Builder(
-                    new com.google.api.client.http.javanet.NetHttpTransport(),
-                    com.google.api.client.json.gson.GsonFactory.getDefaultInstance(),
+                    new NetHttpTransport(),
+                    getDefaultInstance(),
                     credential)
                     .setApplicationName("FriendHub")
                     .build();
 
-            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            ZoneId zone = ZoneId.systemDefault();
             DateTime timeMin = new DateTime(windowStart.atZone(zone).toInstant().toEpochMilli());
             DateTime timeMax = new DateTime(windowEnd.atZone(zone).toInstant().toEpochMilli());
 
@@ -100,5 +104,79 @@ public class GoogleCalendarService {
                 .map(CalendarListEntry::getId)
                 .filter(id -> !id.contains("holiday@group.v.calendar.google.com"))
                 .toList();
+    }
+
+    public String createMeetingEvent(Long organizerId, Meeting meeting, List<String> attendeeEmails) {
+        Event event = new Event();
+        event.setSummary(meeting.getTitle());
+
+        ZoneId zoneId = ZoneId.systemDefault();
+        EventDateTime startDateTime = convertLocalDateTimeToEventDateTime(meeting.getStartTime(), zoneId);
+        EventDateTime endDateTime = convertLocalDateTimeToEventDateTime(meeting.getEndTime(), zoneId);
+
+        event.setStart(startDateTime);
+        event.setEnd(endDateTime);
+
+        if (attendeeEmails != null && !attendeeEmails.isEmpty()) {
+            List<EventAttendee> eventAttendees = new ArrayList<>();
+            for (String email : attendeeEmails) {
+                EventAttendee eventAttendee = new EventAttendee();
+                eventAttendee.setEmail(email);
+                eventAttendees.add(eventAttendee);
+            }
+            event.setAttendees(eventAttendees);
+        }
+
+
+        try {
+            Credential credential = getCredentialForUser(organizerId);
+
+            Calendar service = new Calendar.Builder(
+                    new NetHttpTransport(),
+                    getDefaultInstance(),
+                    credential)
+                    .setApplicationName("FriendHub")
+                    .build();
+
+            Event createdEvent = service.events().insert("primary", event).
+                    setSendUpdates("all")
+                    .execute();
+
+            return createdEvent.getId();
+        } catch (Exception e) {
+            log.error("Failed to create Google Calendar event for organizerId {}: {}", organizerId, e.getMessage());
+            return null;
+        }
+    }
+
+    public void deleteEvent(Long organizerId, String eventId) {
+        if (eventId == null || eventId.trim().isEmpty()) {
+            return;
+        }
+        try {
+            Credential credential = getCredentialForUser(organizerId);
+            Calendar service = new Calendar.Builder(
+                    new NetHttpTransport(),
+                    getDefaultInstance(),
+                    credential)
+                    .setApplicationName("FriendHub")
+                    .build();
+
+            service.events().delete("primary", eventId)
+                    .setSendUpdates("all")
+                    .execute();
+        } catch (Exception e) {
+            log.error("Failed to delete Google Calendar event: {}", e.getMessage());
+        }
+    }
+
+    private EventDateTime convertLocalDateTimeToEventDateTime(LocalDateTime localDateTime, ZoneId zoneId) {
+        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+
+        DateTime dateTime = new DateTime(zonedDateTime.format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+        return new EventDateTime()
+                .setDateTime(dateTime)
+                .setTimeZone(zoneId.getId());
     }
 }

@@ -12,10 +12,12 @@ import com.zack.friendshub.mapper.MeetingMapper;
 import com.zack.friendshub.model.*;
 import com.zack.friendshub.repository.*;
 import com.zack.friendshub.security.UserPrincipal;
+import com.zack.friendshub.service.GoogleCalendarService;
 import com.zack.friendshub.service.MeetingService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class MeetingServiceImpl implements MeetingService {
 
     private final UserRepo userRepo;
@@ -33,7 +36,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final MeetingMapper meetingMapper;
     private final MeetingParticipantRepo meetingParticipantRepo;
     private final MeetingOptionRepo meetingOptionRepo;
-    private final MeetingVoteRepo meetingVoteRepo;
+    private final GoogleCalendarService googleCalendarService;
 
     @Override
     @Transactional
@@ -77,6 +80,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .user(requester)
                 .status(MeetingStatus.ACCEPTED)
                 .role(MeetingRole.ORGANIZER)
+                .voted(true)
                 .build());
 
         for (User participant : participants) {
@@ -85,11 +89,23 @@ public class MeetingServiceImpl implements MeetingService {
                     .user(participant)
                     .status(MeetingStatus.PENDING)
                     .role(MeetingRole.GUEST)
+                    .voted(false)
                     .build());
         }
 
-        meetingParticipantRepo.saveAll(meetingParticipants);
+        List<String> participantEmails = participants.stream()
+                .map(User::getEmail)
+                .toList();
 
+        try {
+            String eventId = googleCalendarService.createMeetingEvent(requester.getId(), savedMeeting, participantEmails);
+            savedMeeting.setGoogleEventId(eventId);
+            meetingRepo.save(savedMeeting);
+        } catch (Exception e) {
+            log.error("Warning: Could not create Google event for classic meeting", e);
+        }
+
+        meetingParticipantRepo.saveAll(meetingParticipants);
         return meetingMapper.toResponse(savedMeeting, requester, meetingParticipants);
     }
 
@@ -99,6 +115,10 @@ public class MeetingServiceImpl implements MeetingService {
         Meeting meeting = meetingRepo.findById(meetingId)
                 .orElseThrow(() -> new EntityNotFoundException("Meeting not found"));
 
+        if (meeting.getStartTime() == null) {
+            throw new IllegalStateException("This is a Smart Meeting poll. Please use the /vote endpoint to accept options.");
+        }
+
         MeetingParticipant currentParticipant = meetingParticipantRepo.findByMeetingIdAndUserId(meetingId, currentUser.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Participant not found"));
 
@@ -107,6 +127,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         currentParticipant.setStatus(MeetingStatus.ACCEPTED);
+        currentParticipant.setVoted(true);
         meetingParticipantRepo.save(currentParticipant);
 
         List<MeetingParticipant> allParticipants = meetingParticipantRepo.findAllByMeetingId(meetingId);
@@ -128,6 +149,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         currentParticipant.setStatus(MeetingStatus.DECLINED);
+        currentParticipant.setVoted(true);
         meetingParticipantRepo.save(currentParticipant);
 
         List<MeetingParticipant> allParticipants = meetingParticipantRepo.findAllByMeetingId(meetingId);
@@ -148,6 +170,9 @@ public class MeetingServiceImpl implements MeetingService {
             throw new IllegalStateException("You do not have permission to cancel this meeting");
         }
 
+        if (meeting.getGoogleEventId() != null) {
+            googleCalendarService.deleteEvent(currentUser.getId(), meeting.getGoogleEventId());
+        }
         meetingRepo.delete(meeting);
     }
 
@@ -171,9 +196,16 @@ public class MeetingServiceImpl implements MeetingService {
         List<MeetingParticipant> pendingParticipations = meetingParticipantRepo
                 .findAllByUserIdAndStatus(currentUser.getId(), MeetingStatus.PENDING);
 
-        List<Meeting> pendingMeetings = pendingParticipations.stream()
-                .map(MeetingParticipant::getMeeting)
-                .toList();
+        List<MeetingParticipant> votingParticipations = meetingParticipantRepo
+                .findAllByUserIdAndStatus(currentUser.getId(), MeetingStatus.VOTING);
+
+        List<Meeting> pendingMeetings = new ArrayList<>();
+
+        pendingParticipations.forEach(p -> pendingMeetings.add(p.getMeeting()));
+
+        votingParticipations.stream()
+                .filter(p -> !Boolean.TRUE.equals(p.getVoted()))
+                .forEach(p -> pendingMeetings.add(p.getMeeting()));
 
         return getMeetingDtos(pendingMeetings);
     }
@@ -245,6 +277,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .user(requester)
                 .status(MeetingStatus.VOTING)
                 .role(MeetingRole.ORGANIZER)
+                .voted(true)
                 .build();
         participantsToSave.add(organizer);
 
@@ -254,6 +287,7 @@ public class MeetingServiceImpl implements MeetingService {
                     .user(guestUser)
                     .status(MeetingStatus.VOTING)
                     .role(MeetingRole.GUEST)
+                    .voted(false)
                     .build();
             participantsToSave.add(participant);
         }
@@ -343,6 +377,7 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setEndTime(winningOption.getEndTime());
         meetingRepo.save(meeting);
 
+        List<String> participantsEmail = new ArrayList<>();
         for (MeetingParticipant p : allParticipants) {
             if (p.getRole().equals(MeetingRole.ORGANIZER)) {
                 p.setStatus(MeetingStatus.ACCEPTED);
@@ -354,10 +389,15 @@ public class MeetingServiceImpl implements MeetingService {
 
             if (votedForWinning) {
                 p.setStatus(MeetingStatus.ACCEPTED);
+                participantsEmail.add(p.getUser().getEmail());
             } else {
                 p.setStatus(MeetingStatus.DECLINED);
             }
         }
+
+        String eventId = googleCalendarService.createMeetingEvent(currentUser.getId(), meeting, participantsEmail);
+        meetingRepo.save(meeting);
+
         meetingParticipantRepo.saveAll(allParticipants);
 
         return meetingMapper.toResponse(meeting, meeting.getOrganizer(), allParticipants);
