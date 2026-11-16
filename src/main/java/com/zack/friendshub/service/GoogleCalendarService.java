@@ -107,6 +107,12 @@ public class GoogleCalendarService {
     }
 
     public String createMeetingEvent(Long organizerId, Meeting meeting, List<String> attendeeEmails) {
+        boolean hasGoogle = userIntegrationRepo.findByUserIdAndProvider(organizerId, "GOOGLE").isPresent();
+        if (!hasGoogle) {
+            log.info("User ID {} hasn't linked Google Calendar. Skipping event creation.", organizerId);
+            return null;
+        }
+
         Event event = new Event();
         event.setSummary(meeting.getTitle());
 
@@ -150,9 +156,11 @@ public class GoogleCalendarService {
     }
 
     public void deleteEvent(Long organizerId, String eventId) {
-        if (eventId == null || eventId.trim().isEmpty()) {
+        boolean hasGoogle = userIntegrationRepo.findByUserIdAndProvider(organizerId, "GOOGLE").isPresent();
+        if (!hasGoogle || eventId == null) {
             return;
         }
+
         try {
             Credential credential = getCredentialForUser(organizerId);
             Calendar service = new Calendar.Builder(

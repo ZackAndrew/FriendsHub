@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -145,6 +146,7 @@ public class MeetingController {
     }
 
     @PostMapping("/propose")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MeetingResponseDto> proposeSmartMeeting(
             @Valid @RequestBody MeetingProposalDto dto,
             @AuthenticationPrincipal UserPrincipal currentUser) {
@@ -154,6 +156,7 @@ public class MeetingController {
     }
 
     @PostMapping("/{meetingId}/vote")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MeetingResponseDto> voteForOptions(
             @PathVariable Long meetingId,
             @Valid @RequestBody MeetingVoteDto dto,
@@ -164,6 +167,7 @@ public class MeetingController {
     }
 
     @PostMapping("/{meetingId}/finalize")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MeetingResponseDto> finalizeSmartMeeting(
             @PathVariable Long meetingId,
             @RequestParam(required = false) Long winningOptionId,
