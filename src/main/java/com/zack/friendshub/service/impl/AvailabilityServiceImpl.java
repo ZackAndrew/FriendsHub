@@ -58,8 +58,15 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
     @Override
     public List<ScoredTimeSlot> calculateCommonFreeTime(AvailabilityRequestDto request, Long currentUserId) {
+        if (request.participantNames() == null || request.participantNames().isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<User> participants = userRepo.findAllByUsernameIn(request.participantNames());
         Set<Long> userIds = participants.stream().map(User::getId).collect(Collectors.toSet());
+        if (currentUserId != null) {
+            userIds.add(currentUserId);
+        }
 
         List<TimeSlot> virtualBlockers = generateVirtualBlockers(
                 request.windowStart(), request.windowEnd(),

@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,28 @@ public class RoutineServiceImpl implements RoutineService {
 
     private final UserRoutineRepo userRoutineRepo;
     private final UserRepo userRepo;
+
+    @Override
+    public List<RoutineDto> getRoutines(Long userId) {
+        List<UserRoutine> userRoutines = userRoutineRepo.findAllByUserId(userId);
+        if (userRoutines == null || userRoutines.isEmpty()) {
+            return List.of();
+        }
+
+        Map<String, List<UserRoutine>> grouped = userRoutines.stream()
+                .collect(Collectors.groupingBy(r -> r.getName() + "|" + r.getStartTime() + "|" + r.getEndTime(), LinkedHashMap::new, Collectors.toList()));
+
+        List<RoutineDto> result = new ArrayList<>();
+        for (List<UserRoutine> group : grouped.values()) {
+            UserRoutine first = group.get(0);
+            List<Integer> days = group.stream()
+                    .map(UserRoutine::getDayOfWeek)
+                    .sorted()
+                    .toList();
+            result.add(new RoutineDto(first.getName(), days, first.getStartTime(), first.getEndTime()));
+        }
+        return result;
+    }
 
     @Override
     @Transactional

@@ -74,6 +74,6 @@ public class GoogleOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             }
         }
         String jwtToken = jwtUtil.generateToken(user.getUsername());
-        response.sendRedirect("/api/auth/oauth2/success?token=" + jwtToken);
+        response.sendRedirect("/?token=" + jwtToken);
     }
 }
