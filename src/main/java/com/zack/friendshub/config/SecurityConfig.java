@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityConstants.SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/reset-password").permitAll()
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/friends/**").authenticated()
                         .requestMatchers("/api/routines/**").authenticated()

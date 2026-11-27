@@ -20,6 +20,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${server.port}")
     private String serverPort;
 
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     @Override
     public void sendVerificationEmail(String toEmail, String token) {
         try {
@@ -30,6 +33,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject("Registration Confirmation - FriendsHub");
 
             String verificationUrl = "http://localhost:" + serverPort + "/api/auth/verify/" + token;
+            log.info("📧 Verification URL generated for {}: {}", toEmail, verificationUrl);
 
             String htmlContent = buildEmailTemplate(verificationUrl);
 
@@ -74,7 +78,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordResetTokenEmail(String toEmail, String token) {
-        String resetLink = "http://localhost:" + serverPort + "/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         try {
             MimeMessage message = mailSender.createMimeMessage();

@@ -1,0 +1,13 @@
+{
+  "name": "friendshub-frontend",
+  "version": "1.0.0",
+  "description": "FriendsHub Modern Web Client",
+  "type": "module",
+  "scripts": {
+    "dev": "python server.py",
+    "start": "python server.py"
+  },
+  "keywords": ["friendshub", "social", "calendar", "meetings"],
+  "author": "FriendsHub Team",
+  "license": "MIT"
+}

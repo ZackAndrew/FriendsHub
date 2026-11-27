@@ -115,7 +115,12 @@ public class AuthController {
     }
 
     @GetMapping("/oauth2/success")
-    public ResponseEntity<?> oauth2Success(@RequestParam("token") String token) {
-        return ResponseEntity.ok(Map.of("message", "Succesfull authorization", "token", token));
+    public void oauth2Success(@RequestParam("token") String token, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        response.sendRedirect("/?token=" + token);
+    }
+
+    @GetMapping("/reset-password")
+    public void redirectResetPassword(@RequestParam("token") String token, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        response.sendRedirect("http://localhost:5173/reset-password?token=" + token);
     }
 }

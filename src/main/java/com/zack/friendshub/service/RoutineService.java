@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface RoutineService {
     void addRoutines(List<RoutineDto> routines, Long userId);
+    List<RoutineDto> getRoutines(Long userId);
 }

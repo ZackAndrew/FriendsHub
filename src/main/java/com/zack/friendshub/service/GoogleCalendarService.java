@@ -30,9 +30,9 @@ public class GoogleCalendarService {
 
     private final UserIntegrationRepo userIntegrationRepo;
 
-    @Value("${OAUTH_CLIENT_ID}")
+    @Value("${OAUTH_CLIENT_ID:dummy-google-client-id}")
     private String clientId;
-    @Value("${OAUTH_CLIENT_SECRET}")
+    @Value("${OAUTH_CLIENT_SECRET:dummy-google-client-secret}")
     private String clientSecret;
 
     public Credential getCredentialForUser(Long userId) {

@@ -13,6 +13,7 @@ import com.zack.friendshub.repository.VerificationTokenRepo;
 import com.zack.friendshub.service.EmailService;
 import com.zack.friendshub.service.VerificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VerificationServiceImpl implements VerificationService {
 
     private final VerificationTokenRepo verificationTokenRepo;
@@ -38,8 +40,13 @@ public class VerificationServiceImpl implements VerificationService {
                 .user(user)
                 .build();
 
-        emailService.sendVerificationEmail(user.getEmail(), verificationToken.getToken());
         verificationTokenRepo.save(verificationToken);
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), verificationToken.getToken());
+        } catch (Exception e) {
+            log.warn("Failed to send verification email to {}: {}. Verification link: http://localhost:8060/api/auth/verify/{}", 
+                    user.getEmail(), e.getMessage(), verificationToken.getToken());
+        }
     }
 
     @Override

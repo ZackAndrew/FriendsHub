@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,14 @@ import java.util.List;
 public class RoutineController {
 
     private final RoutineService routineService;
+
+    @Operation(summary = "Get user routines")
+    @ApiResponse(responseCode = "200", description = "List of user routines")
+    @GetMapping
+    public ResponseEntity<List<RoutineDto>> getRoutines(@AuthenticationPrincipal UserPrincipal currentUser) {
+        Long userId = currentUser.getId();
+        return ResponseEntity.ok(routineService.getRoutines(userId));
+    }
 
     @Operation(
             summary = "Overwrite user routines",
