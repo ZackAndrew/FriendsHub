@@ -14,10 +14,12 @@ import com.zack.friendshub.repository.*;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.GoogleCalendarService;
 import com.zack.friendshub.service.MeetingService;
+import com.zack.friendshub.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final MeetingParticipantRepo meetingParticipantRepo;
     private final MeetingOptionRepo meetingOptionRepo;
     private final GoogleCalendarService googleCalendarService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -106,6 +109,16 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         meetingParticipantRepo.saveAll(meetingParticipants);
+
+        for (MeetingParticipant participant : meetingParticipants) {
+            if (!participant.getRole().equals(MeetingRole.ORGANIZER)) {
+                notificationService.createNotification(participant.getUser().getId(),
+                        "Meeting request \"%s\" from %s".formatted(
+                                StringUtils.abbreviate(savedMeeting.getTitle(), 15),
+                                StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                        savedMeeting.getId());
+            }
+        }
         return meetingMapper.toResponse(savedMeeting, requester, meetingParticipants);
     }
 
@@ -131,7 +144,6 @@ public class MeetingServiceImpl implements MeetingService {
         meetingParticipantRepo.save(currentParticipant);
 
         List<MeetingParticipant> allParticipants = meetingParticipantRepo.findAllByMeetingId(meetingId);
-
         return meetingMapper.toResponse(meeting, meeting.getOrganizer(), allParticipants);
     }
 
@@ -173,6 +185,16 @@ public class MeetingServiceImpl implements MeetingService {
         if (meeting.getGoogleEventId() != null) {
             googleCalendarService.deleteEvent(currentUser.getId(), meeting.getGoogleEventId());
         }
+        for (MeetingParticipant participant : meeting.getParticipants()) {
+            if (!participant.getRole().equals(MeetingRole.ORGANIZER)) {
+                notificationService.createNotification(participant.getUser().getId(),
+                        "Meeting request for \"%s\" from %s was canceled".formatted(
+                                StringUtils.abbreviate(meeting.getTitle(), 15),
+                                StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                        meeting.getId());
+            }
+        }
+
         meetingRepo.delete(meeting);
     }
 
@@ -294,6 +316,16 @@ public class MeetingServiceImpl implements MeetingService {
 
         meetingParticipantRepo.saveAll(participantsToSave);
 
+        for (MeetingParticipant participant : participantsToSave) {
+            if (!participant.getRole().equals(MeetingRole.ORGANIZER)) {
+                notificationService.createNotification(participant.getUser().getId(),
+                        "Meeting request \"%s\" from %s".formatted(
+                                StringUtils.abbreviate(meeting.getTitle(), 15),
+                                StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                        meeting.getId());
+            }
+        }
+        
         return meetingMapper.toResponse(meeting, requester, participantsToSave);
     }
 
@@ -399,6 +431,17 @@ public class MeetingServiceImpl implements MeetingService {
         meetingRepo.save(meeting);
 
         meetingParticipantRepo.saveAll(allParticipants);
+
+        for (MeetingParticipant participant : allParticipants) {
+            if (!participant.getRole().equals(MeetingRole.ORGANIZER)) {
+                notificationService.createNotification(participant.getUser().getId(),
+                        "Meeting request \"%s\" from %s was set".formatted(
+                                StringUtils.abbreviate(meeting.getTitle(), 15),
+                                StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                        meeting.getId());
+            }
+        }
+
 
         return meetingMapper.toResponse(meeting, meeting.getOrganizer(), allParticipants);
     }

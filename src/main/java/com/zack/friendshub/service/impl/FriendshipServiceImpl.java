@@ -13,8 +13,10 @@ import com.zack.friendshub.repository.FriendshipRepo;
 import com.zack.friendshub.repository.UserRepo;
 import com.zack.friendshub.security.UserPrincipal;
 import com.zack.friendshub.service.FriendshipService;
+import com.zack.friendshub.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     private final FriendshipRepo friendshipRepo;
     private final UserRepo userRepo;
     private final FriendshipMapper friendshipMapper;
+    private final NotificationService notificationService;
 
     @Override
     public FriendshipRequestResponseDto sendFriendshipRequest(
@@ -85,6 +88,10 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship saved = friendshipRepo.save(friendship);
 
+        notificationService.createNotification(friendship.getAddressee().getId(),
+                "Friendship request from %s.".formatted(StringUtils.abbreviate(requester.getUsername(), 15)),
+                null);
+
         return friendshipMapper.toResponse(saved);
     }
 
@@ -104,6 +111,10 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship.setStatus(FriendshipStatus.ACCEPTED);
 
+        notificationService.createNotification(friendship.getRequester().getId(),
+                "Friendship from %s accepted.".formatted(StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                null);
+
         return friendshipMapper.toDecisionResponse(friendship);
     }
 
@@ -121,6 +132,12 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendship.setStatus(FriendshipStatus.DECLINED);
+
+        notificationService.createNotification(friendship.getRequester().getId(),
+                "Friendship request with %s was declined".formatted(
+                        StringUtils.abbreviate(currentUser.getUsername(), 15)),
+                null);
+
         return friendshipMapper.toDecisionResponse(friendship);
     }
 
